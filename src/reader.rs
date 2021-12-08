@@ -44,9 +44,14 @@ fn gen_box(buffer: &[u8]) -> Option<Box<dyn Mp4Box>> {
 
 pub fn gen_boxes(mut buffer: &[u8]) -> Vec<Box<dyn Mp4Box>> {
     let mut output = Vec::new();
-    while let Some(bx) = gen_box(buffer) {
-        buffer = &buffer[bx.calc_size()..];
-        output.push(bx);
+    loop {
+        match gen_box(buffer) {
+            Some(bx) => {
+                buffer = &buffer[bx.calc_size()..];
+                output.push(bx);
+            }
+            _ => break,
+        }
     }
     output
 }

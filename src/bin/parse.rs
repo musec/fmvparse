@@ -1,22 +1,25 @@
 use fmvparse::reader;
+use std::env;
+use std::fs::File;
+use std::io;
+use std::io::BufReader;
 
-fn main() -> std::io::Result<()> {
-    let args: Vec<String> = std::env::args().collect();
-    if args.len() != 2 {
+fn main() -> io::Result<()> {
+    let args: Vec<String> = env::args().collect();
+    if args.len() < 2 {
         println!("Usage: {} <filename>", args[0]);
     }
-
-    let path_to_read = &args[1];
-    println!("File: {}", path_to_read);
-    if let Ok(filename) = std::fs::File::open(path_to_read) {
-        let mut reader = std::io::BufReader::new(filename);
-        let mut writer: Vec<u8> = vec![];
-        std::io::copy(&mut reader, &mut writer).unwrap();
-        let boxes = reader::gen_boxes(&writer[..]);
-        // print out boxes
-        for b in boxes {
-            b.show_boxes();
-        }
+    let path = &args[1];
+    // --snip--
+    println!("In file: {}", path);
+    let file = File::open(path).expect("Something went wrong reading the file");
+    let mut reader = BufReader::new(file);
+    let mut writer: Vec<u8> = vec![];
+    io::copy(&mut reader, &mut writer)?;
+    let atoms = reader::gen_boxes(&writer[..]);
+    // print out boxes
+    for atom in atoms {
+        atom.show_boxes();
     }
     Ok(())
 }
