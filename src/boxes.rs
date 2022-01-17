@@ -17,16 +17,13 @@ impl Mp4Box for BoxGen {
     }
 
     fn show_boxes(&self) {
-        println!("{} <size: {:#018X}>", self.bx_name, self.bx_size);
+        println!("[{:#010X}] {}", self.bx_size, self.bx_name);
     }
 }
 
 impl BoxGen {
     pub fn parse_box(bx_name: String, bx_size: u32) -> BoxGen {
-        BoxGen {
-            bx_name: bx_name,
-            bx_size: bx_size,
-        }
+        BoxGen { bx_name, bx_size }
     }
 }
 
@@ -42,23 +39,23 @@ impl FileTypeBox {
         buffer = &buffer[4..]; //skipping 4 bits for name
         buffer = &buffer[4..]; //skipping 4 bits for size
 
-        let mj_brand = read_box(&buffer);
+        let mj_brand = read_box(buffer);
         buffer = &buffer[4..];
 
-        let mn_brand = read_box(&buffer);
+        let mn_brand = read_box(buffer);
         buffer = &buffer[4..];
 
         let mut cmp_brands: Vec<String> = vec![];
-        while buffer.len() > 0 {
-            cmp_brands.push(read_box(&buffer));
+        while !buffer.is_empty() {
+            cmp_brands.push(read_box(buffer));
             buffer = &buffer[4..];
         }
 
         FileTypeBox {
             parent: BoxGen::parse_box(box_name, box_size),
-            mj_brand: mj_brand,
-            mn_brand: mn_brand,
-            cmp_brands: cmp_brands,
+            mj_brand,
+            mn_brand,
+            cmp_brands,
         }
     }
 }
@@ -70,11 +67,11 @@ impl Mp4Box for FileTypeBox {
 
     fn show_boxes(&self) {
         self.parent.show_boxes();
-        println!("  major_brand: {}", self.mj_brand);
-        println!("  minor_version: {}", self.mn_brand);
-        println!("  compatiable_brands:");
+        println!("\tMajor_brand: {}", self.mj_brand);
+        println!("\tMinor_version: {}", self.mn_brand);
+        println!("\tCompatible_brands:");
         for brand in &self.cmp_brands {
-            println!("    Compatiable_brands:'{}'", brand);
+            println!("\t\tCompatible_brands:'{}'", brand);
         }
     }
 }

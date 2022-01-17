@@ -4,7 +4,7 @@ use std::{boxed::Box, str, vec::Vec};
 
 pub fn read_box(buffer: &[u8]) -> String {
     let bf_name = &buffer[..4];
-    str::from_utf8(&bf_name).unwrap().to_string()
+    str::from_utf8(bf_name).unwrap().to_string()
 }
 
 fn gen_box(buffer: &[u8]) -> Option<Box<dyn Mp4Box>> {
@@ -23,13 +23,13 @@ fn gen_box(buffer: &[u8]) -> Option<Box<dyn Mp4Box>> {
 
     let bx_name = {
         let bf_name = &buffer[4..];
-        read_box(&bf_name)
+        read_box(bf_name)
     };
 
     let bx_buf = &buffer[..bx_size as usize];
 
     let new_box: Box<dyn Mp4Box> = match bx_name.as_ref() {
-        "ftyp" => Box::new(FileTypeBox::ftype_box(bx_name, bx_size, &bx_buf)),
+        "ftyp" => Box::new(FileTypeBox::ftype_box(bx_name, bx_size, bx_buf)),
         "moov" => {
             let mut res = MovieBox::moov_box(bx_size, bx_name);
             let boxes = gen_boxes(&buffer[8..res.calc_size()]);
