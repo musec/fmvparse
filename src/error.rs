@@ -5,7 +5,6 @@
 
 use std::fmt;
 use std::io::ErrorKind;
-use std::num::ParseIntError;
 use std::string::FromUtf8Error;
 
 ///
