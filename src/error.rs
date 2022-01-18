@@ -5,7 +5,7 @@
 
 use std::fmt;
 use std::io::ErrorKind;
-use std::string::FromUtf8Error;
+use std::str::Utf8Error;
 
 ///
 /// Problems that can arise in UPSS.
@@ -92,8 +92,8 @@ impl From<Error> for std::io::Error {
     }
 }
 
-impl From<FromUtf8Error> for Error {
-    fn from(err: FromUtf8Error) -> Self {
+impl From<Utf8Error> for Error {
+    fn from(err: Utf8Error) -> Self {
         Error::StringConversionError(err.to_string())
     }
 }
