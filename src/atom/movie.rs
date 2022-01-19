@@ -6,6 +6,7 @@
 use crate::atom::mp4_atom::{Mp4Atom, AtomName};
 use crate::error::Error;
 use byteorder::{BigEndian, ByteOrder};
+use crate::atom::free::Free;
 
 pub struct Movie {
     atoms: Vec<Box<dyn Mp4Atom>>,
@@ -23,7 +24,7 @@ struct Mvhd {
     data: Vec<u8>
 }
 
-struct Trac {
+struct Trak {
     // atoms: Vec<Box<dyn Mp4Atom>>,
     start: usize,
     size: usize,
@@ -43,14 +44,15 @@ impl Mp4Atom for Movie {
 
     fn parse(data: &[u8], start: usize) -> Result<Self, Error> {
         let mut atoms = vec![];
-        let mut index = 4;
+        let mut index = 8; // skip the first 8 bytes that are Movie headers
 
         while index < data.len() {
+
             // the first 8 bytes includes the atom size and its name
-            let size = BigEndian::read_u32(&data[0..index]) as usize;
-            let name = std::str::from_utf8(&data[index..index + 4])?;
+            // The size is the entire size of the box, including the size and type header, fields, and all contained boxes.
+            let size = BigEndian::read_u32(&data[index..index + 4]) as usize;
+            let name = std::str::from_utf8(&data[index + 4..index + 8])?;
             let name = AtomName::from(name);
-            index += 4;
 
             let atom = match name {
                 AtomName::Mvhd => {
@@ -61,7 +63,7 @@ impl Mp4Atom for Movie {
                 },
                 AtomName::Trak => {
                     Box::new(
-                        Movie::parse(&data[index..index + size], index)?
+                        Trak::parse(&data[index..index + size], index)?
                     )
                         as Box<dyn Mp4Atom>
                 },
@@ -71,12 +73,19 @@ impl Mp4Atom for Movie {
                     )
                         as Box<dyn Mp4Atom>
                 },
+                AtomName::Free =>  {
+                    Box::new(
+                        Free::parse(&data[index..index + size], index)?
+                    )
+                        as Box<dyn Mp4Atom>
+                }
                 _ => {
-                    return Err(Error::Unknown("Atom type cannot be parsed".to_string()));
+                    return Err(Error::Unknown("Atom type in Movie cannot be parsed".to_string()));
                 }
             };
 
             atoms.push(atom);
+            index += size;
         }
 
         Ok(Self {
@@ -137,9 +146,9 @@ impl Mp4Atom for Mvhd {
     }
 }
 
-impl Mp4Atom for Trac {
+impl Mp4Atom for Trak {
     fn parse(data: &[u8], start: usize) -> Result<Self, Error> {
-        Ok(Trac {
+        Ok(Trak {
             start,
             size: data.len(),
             data: data.to_vec()
