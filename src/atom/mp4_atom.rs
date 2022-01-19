@@ -25,6 +25,16 @@ pub trait Mp4Atom {
     fn read(&self) -> Result<Vec<u8>, Error>;
 }
 
+impl std::fmt::Debug for dyn Mp4Atom {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "atom name: {}, start address: {}, size: {}",
+            self.name(), self.start(), self.size()
+        )
+    }
+}
+
 pub enum AtomName {
     FType,
     Movie,
@@ -45,7 +55,7 @@ impl From<&str> for AtomName {
             "free" => AtomName::Free,
             "mvhd" => AtomName::Mvhd,
             "trak" => AtomName::Trak,
-            "udata" => AtomName::Udata,
+            "udta" => AtomName::Udata,
             _ => AtomName::Other
         }
     }
@@ -62,6 +72,21 @@ impl std::convert::From<AtomName> for &str {
             AtomName::Trak => "trak",
             AtomName::Udata => "udata",
             AtomName::Other => "other"
+        }
+    }
+}
+
+impl std::fmt::Display for AtomName {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            AtomName::FType => write!(f, "ftyp"),
+            AtomName::Movie => write!(f, "moov"),
+            AtomName::Mdat => write!(f, "mdat"),
+            AtomName::Free => write!(f, "free"),
+            AtomName::Mvhd => write!(f, "mvhd"),
+            AtomName::Trak => write!(f, "trak"),
+            AtomName::Udata => write!(f, "udata"),
+            AtomName::Other => write!(f, "other")
         }
     }
 }
