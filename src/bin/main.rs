@@ -7,6 +7,7 @@ use std::io;
 use std::io::BufReader;
 use std::path::PathBuf;
 use structopt::StructOpt;
+use fmvparse::mp4::Mp4;
 
 #[derive(Debug, StructOpt)]
 #[structopt(
@@ -25,16 +26,7 @@ struct Opt {
 fn main() -> io::Result<()> {
     let opt = Opt::from_args();
 
-    println!("In file: {:?}", opt.file);
-    let file = File::open(&opt.file).expect("Something went wrong reading the file");
-
-    let mut reader = BufReader::new(file);
-    let mut writer: Vec<u8> = vec![];
-    io::copy(&mut reader, &mut writer)?;
-    let atoms = reader::gen_boxes(&writer[..]);
-    // print out boxes
-    for atom in atoms {
-        atom.show_boxes();
-    }
+    let mp4 = Mp4::parse(&opt.file)?;
+    println!("{:?}", mp4);
     Ok(())
 }
