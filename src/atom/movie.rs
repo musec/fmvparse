@@ -57,25 +57,25 @@ impl Mp4Atom for Movie {
             let atom = match name {
                 AtomName::Mvhd => {
                     Box::new(
-                        Mvhd::parse(&data[index..index + size], index)?
+                        Mvhd::parse(&data[index..index + size], index + start)?
                     )
                         as Box<dyn Mp4Atom>
                 },
                 AtomName::Trak => {
                     Box::new(
-                        Trak::parse(&data[index..index + size], index)?
+                        Trak::parse(&data[index..index + size], index + start)?
                     )
                         as Box<dyn Mp4Atom>
                 },
                 AtomName::Udata => {
                     Box::new(
-                        Udata::parse(&data[index..index + size], index)?
+                        Udata::parse(&data[index..index + size], index + start)?
                     )
                         as Box<dyn Mp4Atom>
                 },
                 AtomName::Free =>  {
                     Box::new(
-                        Free::parse(&data[index..index + size], index)?
+                        Free::parse(&data[index..index + size], index + start)?
                     )
                         as Box<dyn Mp4Atom>
                 }
@@ -114,6 +114,10 @@ impl Mp4Atom for Movie {
     fn read(&self) -> Result<Vec<u8>, Error> {
         unimplemented!()
     }
+
+    fn internals(&self) -> Option<&Vec<Box<dyn Mp4Atom>>> {
+        Some(&self.atoms)
+    }
 }
 
 impl Mp4Atom for Mvhd {
@@ -143,6 +147,10 @@ impl Mp4Atom for Mvhd {
 
     fn read(&self) -> Result<Vec<u8>, Error> {
         unimplemented!()
+    }
+
+    fn internals(&self) -> Option<&Vec<Box<dyn Mp4Atom>>> {
+        None
     }
 }
 
@@ -174,6 +182,10 @@ impl Mp4Atom for Trak {
     fn read(&self) -> Result<Vec<u8>, Error> {
         unimplemented!()
     }
+
+    fn internals(&self) -> Option<&Vec<Box<dyn Mp4Atom>>> {
+        None
+    }
 }
 
 impl Mp4Atom for Udata {
@@ -203,5 +215,9 @@ impl Mp4Atom for Udata {
 
     fn read(&self) -> Result<Vec<u8>, Error> {
         unimplemented!()
+    }
+
+    fn internals(&self) -> Option<&Vec<Box<dyn Mp4Atom>>> {
+        None
     }
 }

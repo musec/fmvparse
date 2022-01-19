@@ -41,4 +41,8 @@ impl Mp4Atom for FType {
     fn read(&self) -> Result<Vec<u8>, Error> {
         unimplemented!()
     }
+
+    fn internals(&self) -> Option<&Vec<Box<dyn Mp4Atom>>> {
+        None
+    }
 }

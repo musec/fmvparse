@@ -23,6 +23,8 @@ pub trait Mp4Atom {
 
     /// Read the box content
     fn read(&self) -> Result<Vec<u8>, Error>;
+
+    fn internals(&self) -> Option<&Vec<Box<dyn Mp4Atom>>>;
 }
 
 impl std::fmt::Debug for dyn Mp4Atom {
@@ -31,7 +33,17 @@ impl std::fmt::Debug for dyn Mp4Atom {
             f,
             "atom name: {}, start address: {}, size: {}",
             self.name(), self.start(), self.size()
-        )
+        );
+
+        let internals = self.internals();
+        if internals.is_some() {
+            write!(f, "\n");
+            for internal in internals.unwrap() {
+                write!(f, "    {:?} \n", internal);
+            }
+        }
+
+        Ok(())
     }
 }
 
