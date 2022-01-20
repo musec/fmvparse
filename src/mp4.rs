@@ -3,7 +3,7 @@
  * All rights reserved.
  */
 
-use crate::boxes::{Mp4Atom, AtomName, FType, Movie, MediaData, Free, InnerAtom};
+use crate::boxes::{Mp4Box, AtomName, FType, Movie, MediaData, Free, InnerAtom};
 use std::path::Path;
 use crate::error::Error;
 use std::fs::File;
@@ -12,7 +12,7 @@ use byteorder::{BigEndian, ByteOrder};
 
 
 pub struct Mp4 {
-    atoms: Vec<Box<dyn Mp4Atom>>,
+    atoms: Vec<Box<dyn Mp4Box>>,
     size: usize,
     file: String
 }
@@ -44,31 +44,31 @@ impl Mp4 {
                     Box::new(
                         FType::parse(&buffer[index..index + size], index, 1)?
                     )
-                        as Box<dyn Mp4Atom>
+                        as Box<dyn Mp4Box>
                 },
                 AtomName::Movie => {
                     Box::new(
                     Movie::parse(&buffer[index..index + size], index, 1)?
                     )
-                        as Box<dyn Mp4Atom>
+                        as Box<dyn Mp4Box>
                 },
                 AtomName::MediaData => {
                     Box::new(
                     MediaData::parse(&buffer[index..size], index, 1)?
                     )
-                        as Box<dyn Mp4Atom>
+                        as Box<dyn Mp4Box>
                 }
                 AtomName::Free => {
                     Box::new(
                     Free::parse(&buffer[index..index + size], index, 1)?
                     )
-                        as Box<dyn Mp4Atom>
+                        as Box<dyn Mp4Box>
                 },
                 _ => {
                     Box::new(
                         InnerAtom::parse(&buffer[index..index + size], index, 1)?
                     )
-                        as Box<dyn Mp4Atom>
+                        as Box<dyn Mp4Box>
                 }
             };
 

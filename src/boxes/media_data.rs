@@ -3,7 +3,7 @@
  * All rights reserved.
  */
 
-use crate::boxes::Mp4Atom;
+use crate::boxes::Mp4Box;
 use crate::Error;
 use crate::Header;
 
@@ -14,7 +14,7 @@ pub struct MediaData {
     level: u8
 }
 
-impl Mp4Atom for MediaData {
+impl Mp4Box for MediaData {
     fn parse(data: &[u8], start: usize, level: u8) -> Result<Self, Error> {
         let header = Header::header(data, start)?;
         Ok(MediaData {
@@ -44,7 +44,7 @@ impl Mp4Atom for MediaData {
         unimplemented!()
     }
 
-    fn internals(&self) -> Option<&Vec<Box<dyn Mp4Atom>>> {
+    fn internals(&self) -> Option<&Vec<Box<dyn Mp4Box>>> {
         None
     }
 

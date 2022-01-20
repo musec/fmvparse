@@ -5,7 +5,7 @@
 
 use crate::Error;
 
-pub trait Mp4Atom {
+pub trait Mp4Box {
     /// Read the atom from the data and parse it
     fn parse(data: &[u8], start: usize, level: u8) -> Result<Self, Error> where Self: Sized;
 
@@ -25,13 +25,13 @@ pub trait Mp4Atom {
     fn read(&self) -> Result<Vec<u8>, Error>;
 
     /// Get the internal boxes of this box
-    fn internals(&self) -> Option<&Vec<Box<dyn Mp4Atom>>>;
+    fn internals(&self) -> Option<&Vec<Box<dyn Mp4Box>>>;
 
     /// The box level
     fn level(&self) -> u8;
 }
 
-impl std::fmt::Debug for dyn Mp4Atom {
+impl std::fmt::Debug for dyn Mp4Box {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,

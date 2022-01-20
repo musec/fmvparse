@@ -3,26 +3,26 @@
  * All rights reserved.
  */
 
-use crate::boxes::{Mp4Atom, AtomName, Free, InnerAtom, Media};
+use crate::boxes::{Mp4Box, AtomName, Free, InnerAtom, Media};
 use crate::error::Error;
 use byteorder::{BigEndian, ByteOrder};
 use crate::Header;
 
 pub struct Track {
-    atoms: Vec<Box<dyn Mp4Atom>>,
+    atoms: Vec<Box<dyn Mp4Box>>,
     header: Header,
     level: u8
 }
 
 struct EditLists {
-    atoms: Vec<Box<dyn Mp4Atom>>,
+    atoms: Vec<Box<dyn Mp4Box>>,
     header: Header,
     level: u8
 }
 
 
 
-impl Mp4Atom for Track {
+impl Mp4Box for Track {
     fn parse(data: &[u8], start: usize, level: u8) -> Result<Self, Error> where Self: Sized {
         let mut atoms = vec![];
         let header = Header::header(data, start)?;
@@ -41,25 +41,25 @@ impl Mp4Atom for Track {
                     Box::new(
                         EditLists::parse(&data[index..index + size], index + start, level + 1)?
                     )
-                        as Box<dyn Mp4Atom>
+                        as Box<dyn Mp4Box>
                 }
                 AtomName::Media => {
                     Box::new(
                         Media::parse(&data[index..index + size], index + start, level + 1)?
                     )
-                        as Box<dyn Mp4Atom>
+                        as Box<dyn Mp4Box>
                 },
                 AtomName::Free =>  {
                     Box::new(
                         Free::parse(&data[index..index + size], index + start, level + 1)?
                     )
-                        as Box<dyn Mp4Atom>
+                        as Box<dyn Mp4Box>
                 }
                 _ => {
                     Box::new(
                         InnerAtom::parse(&data[index..index + size], index + start, level + 1)?
                     )
-                        as Box<dyn Mp4Atom>
+                        as Box<dyn Mp4Box>
                 }
             };
 
@@ -94,7 +94,7 @@ impl Mp4Atom for Track {
         unimplemented!()
     }
 
-    fn internals(&self) -> Option<&Vec<Box<dyn Mp4Atom>>> {
+    fn internals(&self) -> Option<&Vec<Box<dyn Mp4Box>>> {
         Some(&self.atoms)
     }
 
@@ -103,7 +103,7 @@ impl Mp4Atom for Track {
     }
 }
 
-impl Mp4Atom for EditLists {
+impl Mp4Box for EditLists {
     fn parse(data: &[u8], start: usize, level: u8) -> Result<Self, Error> {
         let mut atoms = vec![];
         let header = Header::header(data, start)?;
@@ -117,7 +117,7 @@ impl Mp4Atom for EditLists {
 
             let atom = Box::new(
                 InnerAtom::parse(&data[index..index + size], index + start, level + 1)?
-            ) as Box<dyn Mp4Atom>;
+            ) as Box<dyn Mp4Box>;
 
             atoms.push(atom);
             index += size;
@@ -150,7 +150,7 @@ impl Mp4Atom for EditLists {
         unimplemented!()
     }
 
-    fn internals(&self) -> Option<&Vec<Box<dyn Mp4Atom>>> {
+    fn internals(&self) -> Option<&Vec<Box<dyn Mp4Box>>> {
         Some(&self.atoms)
     }
 

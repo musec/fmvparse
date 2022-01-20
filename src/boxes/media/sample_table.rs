@@ -3,24 +3,24 @@
  * All rights reserved.
  */
 
-use crate::boxes::{Mp4Atom, AtomName, InnerAtom};
+use crate::boxes::{Mp4Box, AtomName, InnerAtom};
 use crate::error::Error;
 use byteorder::{BigEndian, ByteOrder};
 use crate::Header;
 
 pub struct SampleTable {
-    atoms: Vec<Box<dyn Mp4Atom>>,
+    atoms: Vec<Box<dyn Mp4Box>>,
     header: Header,
     level: u8
 }
 
 struct SampleDesc {
-    atoms: Vec<Box<dyn Mp4Atom>>,
+    atoms: Vec<Box<dyn Mp4Box>>,
     header: Header,
     level: u8
 }
 
-impl Mp4Atom for SampleTable {
+impl Mp4Box for SampleTable {
     fn parse(data: &[u8], start: usize, level: u8) -> Result<Self, Error> where Self: Sized {
         let mut atoms = vec![];
         let header = Header::header(data, start)?;
@@ -39,13 +39,13 @@ impl Mp4Atom for SampleTable {
                     Box::new(
                         SampleDesc::parse(&data[index..index + size], index + start, level + 1)?
                     )
-                        as Box<dyn Mp4Atom>
+                        as Box<dyn Mp4Box>
                 },
                 _ => {
                     Box::new(
                         InnerAtom::parse(&data[index..index + size], index + start, level + 1)?
                     )
-                        as Box<dyn Mp4Atom>
+                        as Box<dyn Mp4Box>
                 }
             };
 
@@ -80,7 +80,7 @@ impl Mp4Atom for SampleTable {
         unimplemented!()
     }
 
-    fn internals(&self) -> Option<&Vec<Box<dyn Mp4Atom>>> {
+    fn internals(&self) -> Option<&Vec<Box<dyn Mp4Box>>> {
         Some(&self.atoms)
     }
 
@@ -90,7 +90,7 @@ impl Mp4Atom for SampleTable {
 }
 
 
-impl Mp4Atom for SampleDesc {
+impl Mp4Box for SampleDesc {
     fn parse(data: &[u8], start: usize, level: u8) -> Result<Self, Error> where Self: Sized {
         let header = Header::header(data, start)?;
 
@@ -139,7 +139,7 @@ impl Mp4Atom for SampleDesc {
         unimplemented!()
     }
 
-    fn internals(&self) -> Option<&Vec<Box<dyn Mp4Atom>>> {
+    fn internals(&self) -> Option<&Vec<Box<dyn Mp4Box>>> {
         Some(&self.atoms)
     }
 

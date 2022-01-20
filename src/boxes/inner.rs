@@ -3,7 +3,7 @@
  * All rights reserved.
  */
 
-use crate::boxes::Mp4Atom;
+use crate::boxes::Mp4Box;
 use crate::Error;
 use crate::Header;
 
@@ -14,7 +14,7 @@ pub struct InnerAtom {
     level: u8
 }
 
-impl Mp4Atom for InnerAtom {
+impl Mp4Box for InnerAtom {
     fn parse(data: &[u8], start: usize, level: u8) -> Result<Self, Error> where Self: Sized {
         let header = Header::header(data, start)?;
 
@@ -45,7 +45,7 @@ impl Mp4Atom for InnerAtom {
         Ok(self.data.clone())
     }
 
-    fn internals(&self) -> Option<&Vec<Box<dyn Mp4Atom>>> {
+    fn internals(&self) -> Option<&Vec<Box<dyn Mp4Box>>> {
         None
     }
 
