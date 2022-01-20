@@ -11,8 +11,9 @@ use std::io::Read;
 use byteorder::{BigEndian, ByteOrder};
 use crate::atom::ftype::FType;
 use crate::atom::movie::Movie;
-use crate::atom::mdat::Mdat;
+use crate::atom::media_data::MediaData;
 use crate::atom::free::Free;
+use crate::atom::inner::InnerAtom;
 
 
 pub struct Mp4 {
@@ -56,12 +57,12 @@ impl Mp4 {
                     )
                         as Box<dyn Mp4Atom>
                 },
-                AtomName::Mdat => {
+                AtomName::MediaData => {
                     Box::new(
-                    Mdat::parse(&buffer[index..size], index)?
+                    MediaData::parse(&buffer[index..size], index)?
                     )
                         as Box<dyn Mp4Atom>
-                },
+                }
                 AtomName::Free => {
                     Box::new(
                     Free::parse(&buffer[index..index + size], index)?
@@ -69,7 +70,10 @@ impl Mp4 {
                         as Box<dyn Mp4Atom>
                 },
                 _ => {
-                    return Err(Error::Unknown("Atom type cannot be parsed".to_string()));
+                    Box::new(
+                        InnerAtom::parse(&buffer[index..index + size], index)?
+                    )
+                        as Box<dyn Mp4Atom>
                 }
             };
 

@@ -5,37 +5,37 @@
 
 use crate::atom::mp4_atom::Mp4Atom;
 use crate::error::Error;
+use crate::header::Header;
 
 #[derive(Debug)]
 pub struct FType {
-    start: usize,
-    size: usize,
+    header: Header,
     data: Vec<u8>
 }
 
 impl Mp4Atom for FType {
     fn parse(data: &[u8], start: usize) -> Result<Self, Error> {
+        let header = Header::header(data, start)?;
         Ok(FType {
-            start,
-            size: data.len(),
+            header,
             data: data.to_vec()
         })
     }
 
     fn start(&self) -> usize {
-        self.start
+        self.header.start
     }
 
     fn end(&self) -> usize {
-        self.start + self.size
+        self.header.start + self.header.size
     }
 
     fn size(&self) -> usize {
-        self.size
+        self.header.size
     }
 
     fn name(&self) -> &str {
-        "ftyp"
+        self.header.name.as_ref()
     }
 
     fn read(&self) -> Result<Vec<u8>, Error> {

@@ -7,34 +7,26 @@ use crate::atom::mp4_atom::{Mp4Atom, AtomName};
 use crate::error::Error;
 use byteorder::{BigEndian, ByteOrder};
 use crate::atom::free::Free;
+use crate::atom::track::Track;
+use crate::header::Header;
+use crate::atom::inner::InnerAtom;
 
 pub struct Movie {
     atoms: Vec<Box<dyn Mp4Atom>>,
-    start: usize,
-    size: usize,
+    header: Header
 }
 
 // impl Movie {
 //
 // }
 
-struct Mvhd {
-    start: usize,
-    size: usize,
-    data: Vec<u8>
-}
-
-struct Trak {
-    // atoms: Vec<Box<dyn Mp4Atom>>,
-    start: usize,
-    size: usize,
+struct MovieHeader {
+    header: Header,
     data: Vec<u8>
 }
 
 struct Udata {
-    // atoms: Vec<Box<dyn Mp4Atom>>,
-    start: usize,
-    size: usize,
+    header: Header,
     data: Vec<u8>
 }
 
@@ -44,6 +36,7 @@ impl Mp4Atom for Movie {
 
     fn parse(data: &[u8], start: usize) -> Result<Self, Error> {
         let mut atoms = vec![];
+        let header = Header::header(data, start)?;
         let mut index = 8; // skip the first 8 bytes that are Movie headers
 
         while index < data.len() {
@@ -55,15 +48,15 @@ impl Mp4Atom for Movie {
             let name = AtomName::from(name);
 
             let atom = match name {
-                AtomName::Mvhd => {
+                AtomName::MovieHeader => {
                     Box::new(
-                        Mvhd::parse(&data[index..index + size], index + start)?
+                        MovieHeader::parse(&data[index..index + size], index + start)?
                     )
                         as Box<dyn Mp4Atom>
-                },
-                AtomName::Trak => {
+                }
+                AtomName::Track => {
                     Box::new(
-                        Trak::parse(&data[index..index + size], index + start)?
+                        Track::parse(&data[index..index + size], index + start)?
                     )
                         as Box<dyn Mp4Atom>
                 },
@@ -80,7 +73,10 @@ impl Mp4Atom for Movie {
                         as Box<dyn Mp4Atom>
                 }
                 _ => {
-                    return Err(Error::Unknown("Atom type in Movie cannot be parsed".to_string()));
+                    Box::new(
+                        InnerAtom::parse(&data[index..index + size], index + start)?
+                    )
+                        as Box<dyn Mp4Atom>
                 }
             };
 
@@ -90,25 +86,24 @@ impl Mp4Atom for Movie {
 
         Ok(Self {
             atoms,
-            start,
-            size: data.len()
+            header
         })
     }
 
     fn start(&self) -> usize {
-        self.start
+        self.header.start
     }
 
     fn end(&self) -> usize {
-        self.start + self.size
+        self.header.start + self.header.size
     }
 
     fn size(&self) -> usize {
-        self.size
+        self.header.size
     }
 
     fn name(&self) -> &str {
-        "moov"
+        self.header.name.as_ref()
     }
 
     fn read(&self) -> Result<Vec<u8>, Error> {
@@ -120,63 +115,29 @@ impl Mp4Atom for Movie {
     }
 }
 
-impl Mp4Atom for Mvhd {
+impl Mp4Atom for MovieHeader {
     fn parse(data: &[u8], start: usize) -> Result<Self, Error> {
-        Ok(Mvhd {
-            start,
-            size: data.len(),
+        let header = Header::header(&data, start)?;
+        Ok(MovieHeader {
+            header,
             data: data.to_vec()
         })
     }
 
     fn start(&self) -> usize {
-        self.start
+        self.header.start
     }
 
     fn end(&self) -> usize {
-        self.start + self.size
+        self.header.start + self.header.size
     }
 
     fn size(&self) -> usize {
-        self.size
+        self.header.size
     }
 
     fn name(&self) -> &str {
-        "mvhd"
-    }
-
-    fn read(&self) -> Result<Vec<u8>, Error> {
-        unimplemented!()
-    }
-
-    fn internals(&self) -> Option<&Vec<Box<dyn Mp4Atom>>> {
-        None
-    }
-}
-
-impl Mp4Atom for Trak {
-    fn parse(data: &[u8], start: usize) -> Result<Self, Error> {
-        Ok(Trak {
-            start,
-            size: data.len(),
-            data: data.to_vec()
-        })
-    }
-
-    fn start(&self) -> usize {
-        self.start
-    }
-
-    fn end(&self) -> usize {
-        self.start + self.size
-    }
-
-    fn size(&self) -> usize {
-        self.size
-    }
-
-    fn name(&self) -> &str {
-        "trac"
+        self.header.name.as_ref()
     }
 
     fn read(&self) -> Result<Vec<u8>, Error> {
@@ -190,27 +151,27 @@ impl Mp4Atom for Trak {
 
 impl Mp4Atom for Udata {
     fn parse(data: &[u8], start: usize) -> Result<Self, Error> {
+        let header = Header::header(&data, start)?;
         Ok(Udata {
-            start,
-            size: data.len(),
+            header,
             data: data.to_vec()
         })
     }
 
     fn start(&self) -> usize {
-        self.start
+        self.header.start
     }
 
     fn end(&self) -> usize {
-        self.start + self.size
+        self.header.start + self.header.size
     }
 
     fn size(&self) -> usize {
-        self.size
+        self.header.size
     }
 
     fn name(&self) -> &str {
-        "udata"
+        self.header.name.as_ref()
     }
 
     fn read(&self) -> Result<Vec<u8>, Error> {

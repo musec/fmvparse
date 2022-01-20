@@ -47,14 +47,21 @@ impl std::fmt::Debug for dyn Mp4Atom {
     }
 }
 
+#[derive(Debug)]
 pub enum AtomName {
     FType,
     Movie,
-    Mdat,
+    MediaData,
     Free,
-    Mvhd,
-    Trak,
+    MovieHeader,
+    Track,
     Udata,
+    TrackHeader,
+    EditLists,
+    Media,
+    MediaInfo,
+    SampleTable,
+    SampleDesc,
     Other
 }
 
@@ -63,11 +70,17 @@ impl From<&str> for AtomName {
         match name {
             "ftyp" => AtomName::FType,
             "moov" => AtomName::Movie,
-            "mdat" => AtomName::Mdat,
+            "mdat" => AtomName::MediaData,
             "free" => AtomName::Free,
-            "mvhd" => AtomName::Mvhd,
-            "trak" => AtomName::Trak,
+            "mvhd" => AtomName::MovieHeader,
+            "trak" => AtomName::Track,
             "udta" => AtomName::Udata,
+            "tkhd" => AtomName::TrackHeader,
+            "edts" => AtomName::EditLists,
+            "mdia" => AtomName::Media,
+            "minf" => AtomName::MediaInfo,
+            "stbl" => AtomName::SampleTable,
+            "stsd" => AtomName::SampleDesc,
             _ => AtomName::Other
         }
     }
@@ -78,28 +91,37 @@ impl std::convert::From<AtomName> for &str {
         match an {
             AtomName::FType => "ftyp",
             AtomName::Movie => "moov",
-            AtomName::Mdat => "mdat",
+            AtomName::MediaData => "mdat",
             AtomName::Free => "free",
-            AtomName::Mvhd => "mvhd",
-            AtomName::Trak => "trak",
+            AtomName::MovieHeader => "mvhd",
+            AtomName::Track => "trak",
             AtomName::Udata => "udata",
+            AtomName::TrackHeader => "tkhd",
+            AtomName::EditLists => "rdts",
+            AtomName::Media => "mdia",
+            AtomName::MediaInfo => "minf",
+            AtomName::SampleTable => "stbl",
+            AtomName::SampleDesc => "stsd",
             AtomName::Other => "other"
         }
     }
 }
 
-impl std::fmt::Display for AtomName {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            AtomName::FType => write!(f, "ftyp"),
-            AtomName::Movie => write!(f, "moov"),
-            AtomName::Mdat => write!(f, "mdat"),
-            AtomName::Free => write!(f, "free"),
-            AtomName::Mvhd => write!(f, "mvhd"),
-            AtomName::Trak => write!(f, "trak"),
-            AtomName::Udata => write!(f, "udata"),
-            AtomName::Other => write!(f, "other")
-        }
-    }
-}
+// impl std::fmt::Display for AtomName {
+//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+//         match self {
+//             AtomName::FType => write!(f, "ftyp"),
+//             AtomName::Movie => write!(f, "moov"),
+//             AtomName::Mdat => write!(f, "mdat"),
+//             AtomName::Free => write!(f, "free"),
+//             AtomName::Mvhd => write!(f, "mvhd"),
+//             AtomName::Track => write!(f, "trak"),
+//             AtomName::Udata => write!(f, "udata"),
+//             AtomName::TrackHeader => write!(f, "tkhd"),
+//             AtomName::EditLists => write!(f, "edts"),
+//             AtomName::Media => write!(f, "mdia"),
+//             AtomName::Other => write!(f, "other")
+//         }
+//     }
+// }
 

@@ -5,37 +5,37 @@
 
 use crate::atom::mp4_atom::Mp4Atom;
 use crate::error::Error;
+use crate::header::Header;
 
 #[derive(Debug)]
-pub struct Mdat {
-    start: usize,
-    size: usize,
+pub struct MediaData {
+    header: Header,
     data: Vec<u8>
 }
 
-impl Mp4Atom for Mdat {
+impl Mp4Atom for MediaData {
     fn parse(data: &[u8], start: usize) -> Result<Self, Error> {
-        Ok(Mdat {
-            start,
-            size: data.len(),
+        let header = Header::header(data, start)?;
+        Ok(MediaData {
+            header,
             data: data.to_vec()
         })
     }
 
     fn start(&self) -> usize {
-        self.start
+        self.header.start
     }
 
     fn end(&self) -> usize {
-        self.start + self.size
+        self.header.start + self.header.size
     }
 
     fn size(&self) -> usize {
-        self.size
+        self.header.size
     }
 
     fn name(&self) -> &str {
-        "mdat"
+        self.header.name.as_ref()
     }
 
     fn read(&self) -> Result<Vec<u8>, Error> {

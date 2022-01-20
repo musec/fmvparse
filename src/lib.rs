@@ -9,3 +9,4 @@ pub mod reader;
 pub mod error;
 pub mod mp4;
 pub mod atom;
+pub mod header;
