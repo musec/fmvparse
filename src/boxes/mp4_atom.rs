@@ -24,8 +24,10 @@ pub trait Mp4Atom {
     /// Read the box content
     fn read(&self) -> Result<Vec<u8>, Error>;
 
+    /// Get the internal boxes of this box
     fn internals(&self) -> Option<&Vec<Box<dyn Mp4Atom>>>;
 
+    /// The box level
     fn level(&self) -> u8;
 }
 
