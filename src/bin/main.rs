@@ -2,9 +2,7 @@
 extern crate structopt;
 
 // use fmvparse::reader;
-use std::fs::File;
 use std::io;
-use std::io::BufReader;
 use std::path::PathBuf;
 use structopt::StructOpt;
 use fmvparse::mp4::Mp4;

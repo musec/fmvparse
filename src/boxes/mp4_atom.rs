@@ -33,13 +33,13 @@ impl std::fmt::Debug for dyn Mp4Atom {
             f,
             "atom name: {}, start address: {}, size: {}",
             self.name(), self.start(), self.size()
-        );
+        )?;
 
         let internals = self.internals();
         if internals.is_some() {
-            write!(f, "\n");
+            write!(f, "\n")?;
             for internal in internals.unwrap() {
-                write!(f, "    {:?} \n", internal);
+                write!(f, "    {:?} \n", internal)?;
             }
         }
 

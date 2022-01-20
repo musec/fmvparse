@@ -85,9 +85,10 @@ impl Mp4Atom for SampleTable {
 
 impl Mp4Atom for SampleDesc {
     fn parse(data: &[u8], start: usize) -> Result<Self, Error> where Self: Sized {
-        let mut atoms = vec![];
         let header = Header::header(data, start)?;
 
+        let atoms = vec![];
+        // TODO there might be other internals here in other formats?
         // let mut index = 0;
         // while index < data.len() {
         //

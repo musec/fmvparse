@@ -26,9 +26,6 @@ impl Mp4Atom for Track {
         let header = Header::header(data, start)?;
         let mut index = 8; // skip the first 8 bytes that are Movie headers
 
-        let size = BigEndian::read_u32(&data[index..index + 4]) as usize;
-        let name = std::str::from_utf8(&data[index + 4..index + 8])?;
-
         while index < data.len() {
 
             // the first 8 bytes includes the atom size and its name

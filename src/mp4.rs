@@ -90,10 +90,10 @@ impl std::fmt::Debug for Mp4 {
         write!(f,
                "file {}, with size {} has the following structure:\n",
                 self.file, self.size
-        );
+        )?;
 
         for atom in self.atoms.iter() {
-            write!(f, "{:?} \n", atom);
+            write!(f, "{:?} \n", atom)?;
         }
         Ok(())
     }
