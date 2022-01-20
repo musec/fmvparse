@@ -107,7 +107,6 @@ impl Mp4Atom for EditLists {
             // the first 8 bytes includes the atom size and its name
             // The size is the entire size of the box, including the size and type header, fields, and all contained boxes.
             let size = BigEndian::read_u32(&data[index..index + 4]) as usize;
-            // let name = std::str::from_utf8(&data[index + 4..index + 8])?;
 
             let atom = Box::new(
                 InnerAtom::parse(&data[index..index + size], index + start)?

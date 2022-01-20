@@ -15,9 +15,6 @@ pub struct InnerAtom {
 
 impl Mp4Atom for InnerAtom {
     fn parse(data: &[u8], start: usize) -> Result<Self, Error> where Self: Sized {
-
-        // let size = BigEndian::read_u32(&data[0..4]) as usize;
-        // let name = std::str::from_utf8(&data[4..8])?.to_string();
         let header = Header::header(data, start)?;
 
         Ok(InnerAtom {

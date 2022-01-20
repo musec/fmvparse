@@ -107,21 +107,3 @@ impl std::convert::From<AtomName> for &str {
     }
 }
 
-// impl std::fmt::Display for AtomName {
-//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-//         match self {
-//             AtomName::FType => write!(f, "ftyp"),
-//             AtomName::Movie => write!(f, "moov"),
-//             AtomName::Mdat => write!(f, "mdat"),
-//             AtomName::Free => write!(f, "free"),
-//             AtomName::Mvhd => write!(f, "mvhd"),
-//             AtomName::Track => write!(f, "trak"),
-//             AtomName::Udata => write!(f, "udata"),
-//             AtomName::TrackHeader => write!(f, "tkhd"),
-//             AtomName::EditLists => write!(f, "edts"),
-//             AtomName::Media => write!(f, "mdia"),
-//             AtomName::Other => write!(f, "other")
-//         }
-//     }
-// }
-

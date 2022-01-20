@@ -13,10 +13,6 @@ pub struct Movie {
     header: Header
 }
 
-// impl Movie {
-//
-// }
-
 struct MovieHeader {
     header: Header,
     data: Vec<u8>
