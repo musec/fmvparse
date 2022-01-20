@@ -7,7 +7,7 @@ use crate::Error;
 
 pub trait Mp4Atom {
     /// Read the atom from the data and parse it
-    fn parse(data: &[u8], start: usize) -> Result<Self, Error> where Self: Sized;
+    fn parse(data: &[u8], start: usize, level: u8) -> Result<Self, Error> where Self: Sized;
 
     /// The start address of the box
     fn start(&self) -> usize;
@@ -25,21 +25,33 @@ pub trait Mp4Atom {
     fn read(&self) -> Result<Vec<u8>, Error>;
 
     fn internals(&self) -> Option<&Vec<Box<dyn Mp4Atom>>>;
+
+    fn level(&self) -> u8;
 }
 
 impl std::fmt::Debug for dyn Mp4Atom {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+
+        // add indent based on the level
+        for _ in 0..self.level() {
+            write!(f, " ")?;
+        }
+
         write!(
             f,
-            "atom name: {}, start address: {}, size: {}",
+            "atom name: {}, start address: {}, size: {} \n",
             self.name(), self.start(), self.size()
         )?;
 
         let internals = self.internals();
         if internals.is_some() {
-            write!(f, "\n")?;
+
             for internal in internals.unwrap() {
-                write!(f, "    {:?} \n", internal)?;
+                // add indent based on the level
+                for _ in 0..internal.level() {
+                    write!(f, " ")?;
+                }
+                write!(f, "{:?}", internal)?;
             }
         }
 

@@ -17,11 +17,12 @@ use crate::Header;
 
 pub struct Media {
     atoms: Vec<Box<dyn Mp4Atom>>,
-    header: Header
+    header: Header,
+    level: u8
 }
 
 impl Mp4Atom for Media {
-    fn parse(data: &[u8], start: usize) -> Result<Self, Error> where Self: Sized {
+    fn parse(data: &[u8], start: usize, level: u8) -> Result<Self, Error> where Self: Sized {
         let mut atoms = vec![];
         let header = Header::header(data, start)?;
         let mut index = 8; // skip the first 8 bytes that are Movie headers
@@ -37,13 +38,13 @@ impl Mp4Atom for Media {
             let atom = match name {
                 AtomName::MediaInfo => {
                     Box::new(
-                        MediaInfo::parse(&data[index..index + size], index + start)?
+                        MediaInfo::parse(&data[index..index + size], index + start, level + 1)?
                     )
                         as Box<dyn Mp4Atom>
                 },
                 _ => {
                     Box::new(
-                        InnerAtom::parse(&data[index..index + size], index + start)?
+                        InnerAtom::parse(&data[index..index + size], index + start, level + 1)?
                     )
                         as Box<dyn Mp4Atom>
                 }
@@ -55,7 +56,8 @@ impl Mp4Atom for Media {
 
         Ok(Self {
             atoms,
-            header
+            header,
+            level
         })
     }
 
@@ -81,6 +83,10 @@ impl Mp4Atom for Media {
 
     fn internals(&self) -> Option<&Vec<Box<dyn Mp4Atom>>> {
         Some(&self.atoms)
+    }
+
+    fn level(&self) -> u8 {
+        self.level
     }
 }
 

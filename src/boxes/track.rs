@@ -10,18 +10,20 @@ use crate::Header;
 
 pub struct Track {
     atoms: Vec<Box<dyn Mp4Atom>>,
-    header: Header
+    header: Header,
+    level: u8
 }
 
 struct EditLists {
     atoms: Vec<Box<dyn Mp4Atom>>,
-    header: Header
+    header: Header,
+    level: u8
 }
 
 
 
 impl Mp4Atom for Track {
-    fn parse(data: &[u8], start: usize) -> Result<Self, Error> where Self: Sized {
+    fn parse(data: &[u8], start: usize, level: u8) -> Result<Self, Error> where Self: Sized {
         let mut atoms = vec![];
         let header = Header::header(data, start)?;
         let mut index = 8; // skip the first 8 bytes that are Movie headers
@@ -37,25 +39,25 @@ impl Mp4Atom for Track {
             let atom = match name {
                 AtomName::EditLists => {
                     Box::new(
-                        EditLists::parse(&data[index..index + size], index + start)?
+                        EditLists::parse(&data[index..index + size], index + start, level + 1)?
                     )
                         as Box<dyn Mp4Atom>
                 }
                 AtomName::Media => {
                     Box::new(
-                        Media::parse(&data[index..index + size], index + start)?
+                        Media::parse(&data[index..index + size], index + start, level + 1)?
                     )
                         as Box<dyn Mp4Atom>
                 },
                 AtomName::Free =>  {
                     Box::new(
-                        Free::parse(&data[index..index + size], index + start)?
+                        Free::parse(&data[index..index + size], index + start, level + 1)?
                     )
                         as Box<dyn Mp4Atom>
                 }
                 _ => {
                     Box::new(
-                        InnerAtom::parse(&data[index..index + size], index + start)?
+                        InnerAtom::parse(&data[index..index + size], index + start, level + 1)?
                     )
                         as Box<dyn Mp4Atom>
                 }
@@ -67,7 +69,8 @@ impl Mp4Atom for Track {
 
         Ok(Self {
             atoms,
-            header
+            header,
+            level
         })
     }
 
@@ -94,10 +97,14 @@ impl Mp4Atom for Track {
     fn internals(&self) -> Option<&Vec<Box<dyn Mp4Atom>>> {
         Some(&self.atoms)
     }
+
+    fn level(&self) -> u8 {
+        self.level
+    }
 }
 
 impl Mp4Atom for EditLists {
-    fn parse(data: &[u8], start: usize) -> Result<Self, Error> {
+    fn parse(data: &[u8], start: usize, level: u8) -> Result<Self, Error> {
         let mut atoms = vec![];
         let header = Header::header(data, start)?;
         let mut index = 8; // skip the first 8 bytes that are Movie headers
@@ -109,7 +116,7 @@ impl Mp4Atom for EditLists {
             let size = BigEndian::read_u32(&data[index..index + 4]) as usize;
 
             let atom = Box::new(
-                InnerAtom::parse(&data[index..index + size], index + start)?
+                InnerAtom::parse(&data[index..index + size], index + start, level + 1)?
             ) as Box<dyn Mp4Atom>;
 
             atoms.push(atom);
@@ -118,7 +125,8 @@ impl Mp4Atom for EditLists {
 
         Ok(Self {
             atoms,
-            header
+            header,
+            level
         })
     }
 
@@ -144,5 +152,9 @@ impl Mp4Atom for EditLists {
 
     fn internals(&self) -> Option<&Vec<Box<dyn Mp4Atom>>> {
         Some(&self.atoms)
+    }
+
+    fn level(&self) -> u8 {
+        self.level
     }
 }

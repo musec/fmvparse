@@ -10,24 +10,27 @@ use crate::Header;
 
 pub struct Movie {
     atoms: Vec<Box<dyn Mp4Atom>>,
-    header: Header
+    header: Header,
+    level: u8,
 }
 
 struct MovieHeader {
     header: Header,
-    data: Vec<u8>
+    data: Vec<u8>,
+    level: u8,
 }
 
 struct Udata {
     header: Header,
-    data: Vec<u8>
+    data: Vec<u8>,
+    level: u8,
 }
 
 
 
 impl Mp4Atom for Movie {
 
-    fn parse(data: &[u8], start: usize) -> Result<Self, Error> {
+    fn parse(data: &[u8], start: usize, level: u8) -> Result<Self, Error> {
         let mut atoms = vec![];
         let header = Header::header(data, start)?;
         let mut index = 8; // skip the first 8 bytes that are Movie headers
@@ -43,31 +46,31 @@ impl Mp4Atom for Movie {
             let atom = match name {
                 AtomName::MovieHeader => {
                     Box::new(
-                        MovieHeader::parse(&data[index..index + size], index + start)?
+                        MovieHeader::parse(&data[index..index + size], index + start, level + 1)?
                     )
                         as Box<dyn Mp4Atom>
                 }
                 AtomName::Track => {
                     Box::new(
-                        Track::parse(&data[index..index + size], index + start)?
+                        Track::parse(&data[index..index + size], index + start, level + 1)?
                     )
                         as Box<dyn Mp4Atom>
                 },
                 AtomName::Udata => {
                     Box::new(
-                        Udata::parse(&data[index..index + size], index + start)?
+                        Udata::parse(&data[index..index + size], index + start, level + 1)?
                     )
                         as Box<dyn Mp4Atom>
                 },
                 AtomName::Free =>  {
                     Box::new(
-                        Free::parse(&data[index..index + size], index + start)?
+                        Free::parse(&data[index..index + size], index + start, level + 1)?
                     )
                         as Box<dyn Mp4Atom>
                 }
                 _ => {
                     Box::new(
-                        InnerAtom::parse(&data[index..index + size], index + start)?
+                        InnerAtom::parse(&data[index..index + size], index + start, level + 1)?
                     )
                         as Box<dyn Mp4Atom>
                 }
@@ -79,7 +82,8 @@ impl Mp4Atom for Movie {
 
         Ok(Self {
             atoms,
-            header
+            header,
+            level
         })
     }
 
@@ -106,14 +110,19 @@ impl Mp4Atom for Movie {
     fn internals(&self) -> Option<&Vec<Box<dyn Mp4Atom>>> {
         Some(&self.atoms)
     }
+
+    fn level(&self) -> u8 {
+        self.level
+    }
 }
 
 impl Mp4Atom for MovieHeader {
-    fn parse(data: &[u8], start: usize) -> Result<Self, Error> {
+    fn parse(data: &[u8], start: usize, level: u8) -> Result<Self, Error> {
         let header = Header::header(&data, start)?;
         Ok(MovieHeader {
             header,
-            data: data.to_vec()
+            data: data.to_vec(),
+            level
         })
     }
 
@@ -139,15 +148,20 @@ impl Mp4Atom for MovieHeader {
 
     fn internals(&self) -> Option<&Vec<Box<dyn Mp4Atom>>> {
         None
+    }
+
+    fn level(&self) -> u8 {
+        self.level
     }
 }
 
 impl Mp4Atom for Udata {
-    fn parse(data: &[u8], start: usize) -> Result<Self, Error> {
+    fn parse(data: &[u8], start: usize, level: u8) -> Result<Self, Error> {
         let header = Header::header(&data, start)?;
         Ok(Udata {
             header,
-            data: data.to_vec()
+            data: data.to_vec(),
+            level
         })
     }
 
@@ -173,5 +187,9 @@ impl Mp4Atom for Udata {
 
     fn internals(&self) -> Option<&Vec<Box<dyn Mp4Atom>>> {
         None
+    }
+
+    fn level(&self) -> u8 {
+        self.level
     }
 }

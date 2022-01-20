@@ -10,16 +10,18 @@ use crate::Header;
 /// This is for the boxes that have no inner structures
 pub struct InnerAtom {
     header: Header,
-    data: Vec<u8>
+    data: Vec<u8>,
+    level: u8
 }
 
 impl Mp4Atom for InnerAtom {
-    fn parse(data: &[u8], start: usize) -> Result<Self, Error> where Self: Sized {
+    fn parse(data: &[u8], start: usize, level: u8) -> Result<Self, Error> where Self: Sized {
         let header = Header::header(data, start)?;
 
         Ok(InnerAtom {
             header,
-            data: data.to_vec()
+            data: data.to_vec(),
+            level
         })
     }
 
@@ -45,6 +47,10 @@ impl Mp4Atom for InnerAtom {
 
     fn internals(&self) -> Option<&Vec<Box<dyn Mp4Atom>>> {
         None
+    }
+
+    fn level(&self) -> u8 {
+        self.level
     }
 }
 

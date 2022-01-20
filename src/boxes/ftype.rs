@@ -10,15 +10,17 @@ use crate::Header;
 #[derive(Debug)]
 pub struct FType {
     header: Header,
-    data: Vec<u8>
+    data: Vec<u8>,
+    level: u8,
 }
 
 impl Mp4Atom for FType {
-    fn parse(data: &[u8], start: usize) -> Result<Self, Error> {
+    fn parse(data: &[u8], start: usize, level: u8) -> Result<Self, Error> {
         let header = Header::header(data, start)?;
         Ok(FType {
             header,
-            data: data.to_vec()
+            data: data.to_vec(),
+            level
         })
     }
 
@@ -44,5 +46,9 @@ impl Mp4Atom for FType {
 
     fn internals(&self) -> Option<&Vec<Box<dyn Mp4Atom>>> {
         None
+    }
+
+    fn level(&self) -> u8 {
+        self.level
     }
 }

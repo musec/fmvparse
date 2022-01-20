@@ -42,31 +42,31 @@ impl Mp4 {
             let atom = match name {
                 AtomName::FType => {
                     Box::new(
-                        FType::parse(&buffer[index..index + size], index)?
+                        FType::parse(&buffer[index..index + size], index, 1)?
                     )
                         as Box<dyn Mp4Atom>
                 },
                 AtomName::Movie => {
                     Box::new(
-                    Movie::parse(&buffer[index..index + size], index)?
+                    Movie::parse(&buffer[index..index + size], index, 1)?
                     )
                         as Box<dyn Mp4Atom>
                 },
                 AtomName::MediaData => {
                     Box::new(
-                    MediaData::parse(&buffer[index..size], index)?
+                    MediaData::parse(&buffer[index..size], index, 1)?
                     )
                         as Box<dyn Mp4Atom>
                 }
                 AtomName::Free => {
                     Box::new(
-                    Free::parse(&buffer[index..index + size], index)?
+                    Free::parse(&buffer[index..index + size], index, 1)?
                     )
                         as Box<dyn Mp4Atom>
                 },
                 _ => {
                     Box::new(
-                        InnerAtom::parse(&buffer[index..index + size], index)?
+                        InnerAtom::parse(&buffer[index..index + size], index, 1)?
                     )
                         as Box<dyn Mp4Atom>
                 }
@@ -93,7 +93,7 @@ impl std::fmt::Debug for Mp4 {
         )?;
 
         for atom in self.atoms.iter() {
-            write!(f, "{:?} \n", atom)?;
+            write!(f, "{:?}", atom)?;
         }
         Ok(())
     }

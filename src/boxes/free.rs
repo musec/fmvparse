@@ -9,14 +9,16 @@ use crate::Header;
 
 #[derive(Debug)]
 pub struct Free {
-    header: Header
+    header: Header,
+    level: u8
 }
 
 impl Mp4Atom for Free {
-    fn parse(data: &[u8], start: usize) -> Result<Self, Error> {
+    fn parse(data: &[u8], start: usize, level: u8) -> Result<Self, Error> {
         let header = Header::header(data, start)?;
         Ok(Free {
-            header
+            header,
+            level
         })
     }
 
@@ -42,5 +44,9 @@ impl Mp4Atom for Free {
 
     fn internals(&self) -> Option<&Vec<Box<dyn Mp4Atom>>> {
         None
+    }
+
+    fn level(&self) -> u8 {
+        self.level
     }
 }
