@@ -88,7 +88,7 @@ impl Mp4 {
 impl std::fmt::Debug for Mp4 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f,
-               "file {}, with size {} has the following structure:\n",
+               "file {}, with size {} has the following structure: \n",
                 self.file, self.size
         )?;
 

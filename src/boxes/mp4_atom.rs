@@ -31,30 +31,22 @@ pub trait Mp4Atom {
 
 impl std::fmt::Debug for dyn Mp4Atom {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-
-        // add indent based on the level
-        for _ in 0..self.level() {
-            write!(f, " ")?;
-        }
-
         write!(
             f,
-            "atom name: {}, start address: {}, size: {} \n",
+            "{}: {{start address: {}, size: {}}} \n",
             self.name(), self.start(), self.size()
         )?;
 
         let internals = self.internals();
         if internals.is_some() {
-
             for internal in internals.unwrap() {
                 // add indent based on the level
-                for _ in 0..internal.level() {
-                    write!(f, " ")?;
+                for _ in 0..internal.level() - 1 {
+                    write!(f, "\t")?;
                 }
                 write!(f, "{:?}", internal)?;
             }
         }
-
         Ok(())
     }
 }
