@@ -6,7 +6,10 @@
 // pub mod boxes;
 // pub mod reader;
 
-pub mod error;
+mod error;
 pub mod mp4;
-pub mod atom;
-pub mod header;
+mod boxes;
+mod header;
+
+pub use error::Error;
+pub use header::Header;

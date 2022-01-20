@@ -3,7 +3,7 @@
  * All rights reserved.
  */
 
-use crate::error::Error;
+use crate::Error;
 
 pub trait Mp4Atom {
     /// Read the atom from the data and parse it

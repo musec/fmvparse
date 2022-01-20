@@ -3,19 +3,24 @@
  * All rights reserved.
  */
 
-use crate::atom::mp4_atom::{Mp4Atom, AtomName};
-use crate::error::Error;
-use crate::atom::inner::InnerAtom;
-use byteorder::{BigEndian, ByteOrder};
-use crate::atom::media::sample_table::SampleTable;
-use crate::header::Header;
+mod media_info;
+mod sample_table;
 
-pub struct MediaInfo {
+pub use sample_table::SampleTable;
+pub use media_info::MediaInfo;
+
+
+use crate::boxes::{Mp4Atom, AtomName, InnerAtom};
+use crate::error::Error;
+use byteorder::{BigEndian, ByteOrder};
+use crate::Header;
+
+pub struct Media {
     atoms: Vec<Box<dyn Mp4Atom>>,
     header: Header
 }
 
-impl Mp4Atom for MediaInfo {
+impl Mp4Atom for Media {
     fn parse(data: &[u8], start: usize) -> Result<Self, Error> where Self: Sized {
         let mut atoms = vec![];
         let header = Header::header(data, start)?;
@@ -30,9 +35,9 @@ impl Mp4Atom for MediaInfo {
             let name = AtomName::from(name);
 
             let atom = match name {
-                AtomName::SampleTable => {
+                AtomName::MediaInfo => {
                     Box::new(
-                        SampleTable::parse(&data[index..index + size], index + start)?
+                        MediaInfo::parse(&data[index..index + size], index + start)?
                     )
                         as Box<dyn Mp4Atom>
                 },
@@ -78,3 +83,5 @@ impl Mp4Atom for MediaInfo {
         Some(&self.atoms)
     }
 }
+
+

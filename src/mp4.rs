@@ -3,17 +3,12 @@
  * All rights reserved.
  */
 
-use crate::atom::mp4_atom::{Mp4Atom, AtomName};
+use crate::boxes::{Mp4Atom, AtomName, FType, Movie, MediaData, Free, InnerAtom};
 use std::path::Path;
 use crate::error::Error;
 use std::fs::File;
 use std::io::Read;
 use byteorder::{BigEndian, ByteOrder};
-use crate::atom::ftype::FType;
-use crate::atom::movie::Movie;
-use crate::atom::media_data::MediaData;
-use crate::atom::free::Free;
-use crate::atom::inner::InnerAtom;
 
 
 pub struct Mp4 {

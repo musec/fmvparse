@@ -3,22 +3,20 @@
  * All rights reserved.
  */
 
-use crate::atom::mp4_atom::Mp4Atom;
-use crate::error::Error;
-use crate::header::Header;
+use crate::boxes::Mp4Atom;
+use crate::Error;
+use crate::Header;
 
 #[derive(Debug)]
-pub struct FType {
-    header: Header,
-    data: Vec<u8>
+pub struct Free {
+    header: Header
 }
 
-impl Mp4Atom for FType {
+impl Mp4Atom for Free {
     fn parse(data: &[u8], start: usize) -> Result<Self, Error> {
         let header = Header::header(data, start)?;
-        Ok(FType {
-            header,
-            data: data.to_vec()
+        Ok(Free {
+            header
         })
     }
 

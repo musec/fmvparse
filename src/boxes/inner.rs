@@ -3,9 +3,9 @@
  * All rights reserved.
  */
 
-use crate::atom::mp4_atom::Mp4Atom;
-use crate::error::Error;
-use crate::header::Header;
+use crate::boxes::Mp4Atom;
+use crate::Error;
+use crate::Header;
 
 /// This is for the boxes that have no inner structures
 pub struct InnerAtom {

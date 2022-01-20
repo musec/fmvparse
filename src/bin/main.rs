@@ -1,7 +1,7 @@
 
 extern crate structopt;
 
-use fmvparse::reader;
+// use fmvparse::reader;
 use std::fs::File;
 use std::io;
 use std::io::BufReader;

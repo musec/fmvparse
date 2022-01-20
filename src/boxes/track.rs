@@ -3,13 +3,10 @@
  * All rights reserved.
  */
 
-use crate::atom::mp4_atom::{Mp4Atom, AtomName};
+use crate::boxes::{Mp4Atom, AtomName, Free, InnerAtom, Media};
 use crate::error::Error;
 use byteorder::{BigEndian, ByteOrder};
-use crate::atom::free::Free;
-use crate::atom::inner::InnerAtom;
-use crate::atom::media::Media;
-use crate::header::Header;
+use crate::Header;
 
 pub struct Track {
     atoms: Vec<Box<dyn Mp4Atom>>,
