@@ -12,3 +12,6 @@ Cargo.lock
 # idea files
 .idea/
 *.iml
+
+# ignore the sample data directory
+data/
