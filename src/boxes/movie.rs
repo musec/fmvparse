@@ -138,7 +138,7 @@ impl Mp4Atom for MovieHeader {
     }
 
     fn read(&self) -> Result<Vec<u8>, Error> {
-        unimplemented!()
+        Ok(self.data.clone())
     }
 
     fn internals(&self) -> Option<&Vec<Box<dyn Mp4Atom>>> {
@@ -172,7 +172,7 @@ impl Mp4Atom for Udata {
     }
 
     fn read(&self) -> Result<Vec<u8>, Error> {
-        unimplemented!()
+        Ok(self.data.clone())
     }
 
     fn internals(&self) -> Option<&Vec<Box<dyn Mp4Atom>>> {

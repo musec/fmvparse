@@ -43,7 +43,7 @@ impl Mp4Atom for InnerAtom {
     }
 
     fn read(&self) -> Result<Vec<u8>, Error> {
-        unimplemented!()
+        Ok(self.data.clone())
     }
 
     fn internals(&self) -> Option<&Vec<Box<dyn Mp4Atom>>> {

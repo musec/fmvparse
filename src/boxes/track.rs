@@ -144,6 +144,6 @@ impl Mp4Atom for EditLists {
     }
 
     fn internals(&self) -> Option<&Vec<Box<dyn Mp4Atom>>> {
-        None
+        Some(&self.atoms)
     }
 }
