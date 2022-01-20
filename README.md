@@ -1,5 +1,6 @@
-## Usage
+This library is used for parsing `.mp4` file formats and extract the internal structures.
 
+### Usage
 ```sh
-cargo run --bin parse <some mp4-file>
+cargo run --release -- -f <some mp4-file>
 ```
