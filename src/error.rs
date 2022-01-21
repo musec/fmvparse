@@ -38,6 +38,8 @@ pub enum Error {
     UserError(String),
 
     StringConversionError(String),
+
+    BoxNotFound(String)
 }
 
 impl Error {
@@ -114,9 +116,8 @@ impl fmt::Display for Error {
             } => write!(f, "Invalid {} index: {} (max: {})", kind, index, max),
             Error::Unknown(ref detail) => write!(f, "Unknown error: {}", detail),
             Error::UserError(ref detail) => write!(f, "User error: {}", detail),
-            Error::StringConversionError(ref detail) => {
-                write!(f, "String conversion error: {}", detail)
-            }
+            Error::StringConversionError(ref detail) => write!(f, "String conversion error: {}", detail),
+            Error::BoxNotFound(ref detail) => write!(f, "Box {} not found", detail),
         }
     }
 }
