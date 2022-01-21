@@ -3,20 +3,19 @@
  * All rights reserved.
  */
 
-use crate::boxes::{Mp4Box, AtomName, FileType, Movie, MediaData, Free, InnerAtom};
+use crate::boxes::{Mp4Box, AtomName, FileType, Movie, MediaData, Free};
 use std::path::Path;
 use crate::error::Error;
 use std::fs::File;
 use std::io::Read;
 use byteorder::{BigEndian, ByteOrder};
 
-
+#[derive(Default)]
 pub struct Mp4 {
-    atoms: Vec<Box<dyn Mp4Box>>,
-    // ftype: Box<dyn Mp4Box>,
-    // movie: Box<dyn Mp4Box>,
-    // free: Box<dyn Mp4Box>,
-    // media_data: Box<dyn Mp4Box>,
+    ftyp: Option<Box<dyn Mp4Box>>, //file type and compatibility
+    moov: Option<Box<dyn Mp4Box>>, // container for all the metadata
+    free: Option<Box<dyn Mp4Box>>, // free space
+    mdat: Option<Box<dyn Mp4Box>>, //  media data container
     size: usize,
     file: String
 }
@@ -33,8 +32,12 @@ impl Mp4 {
         let mut buffer: Vec<u8> = vec![];
         file.read_to_end(&mut buffer)?;
 
-        let mut atoms = vec![];
         let mut index = 0;
+        let mut mp4 = Mp4 {
+            size: file_size as usize,
+            file: path.to_str().unwrap().to_string(),
+            ..Default::default()
+        };
 
         while index < buffer.len() {
             // the first 8 bytes includes the atom size and its name
@@ -43,49 +46,74 @@ impl Mp4 {
             let name = std::str::from_utf8(&buffer[index + 4..index + 8])?;
             let name = AtomName::from(name);
 
-            let atom = match name {
+            match name {
                 AtomName::FileType => {
-                    Box::new(
+                    let b = Box::new(
                         FileType::parse(&buffer[index..index + size], index, 1)?
-                    )
-                        as Box<dyn Mp4Box>
+                    ) as Box<dyn Mp4Box>;
+                    mp4.ftyp = Some(b);
                 }
                 AtomName::Movie => {
-                    Box::new(
+                    let b = Box::new(
                     Movie::parse(&buffer[index..index + size], index, 1)?
-                    )
-                        as Box<dyn Mp4Box>
+                    ) as Box<dyn Mp4Box>;
+                    mp4.moov = Some(b);
                 },
                 AtomName::MediaData => {
-                    Box::new(
+                    let b = Box::new(
                     MediaData::parse(&buffer[index..size], index, 1)?
-                    )
-                        as Box<dyn Mp4Box>
+                    ) as Box<dyn Mp4Box>;
+                    mp4.mdat = Some(b);
                 }
                 AtomName::Free => {
-                    Box::new(
+                    let b  = Box::new(
                     Free::parse(&buffer[index..index + size], index, 1)?
-                    )
-                        as Box<dyn Mp4Box>
+                    ) as Box<dyn Mp4Box>;
+                    mp4.free = Some(b);
                 },
-                _ => {
-                    Box::new(
-                        InnerAtom::parse(&buffer[index..index + size], index, 1)?
-                    )
-                        as Box<dyn Mp4Box>
-                }
-            };
-
-            atoms.push(atom);
+                _ => { }
+            }
             index += size;
         }
 
 
-        Ok(Mp4 {
-            atoms,
-            size: file_size as usize,
-            file: path.to_str().unwrap().to_string()
-        })
+        Ok(mp4)
+    }
+
+    pub fn movie_box(&self) -> Result<&Movie, Error> {
+        match self.moov.as_ref() {
+            Some(b) => {
+                Ok(b.downcast_ref::<Movie>().unwrap())
+            },
+            None => Err(Error::BoxNotFound("moov".to_string()))
+        }
+    }
+
+    pub fn ftype_box(&self) -> Result<&FileType, Error> {
+        match self.ftyp.as_ref() {
+            Some(b) => {
+                Ok(b.downcast_ref::<FileType>().unwrap())
+            },
+            None => Err(Error::BoxNotFound("ftyp".to_string()))
+        }
+    }
+
+    pub fn mdat_box(&self) -> Result<&MediaData, Error> {
+        match self.mdat.as_ref() {
+            Some(b) => {
+                Ok(b.downcast_ref::<MediaData>().unwrap())
+            },
+            None => Err(Error::BoxNotFound("mdat".to_string()))
+        }
+    }
+
+    pub fn free_box(&self) -> Result<&Free, Error> {
+        match self.free.as_ref() {
+            Some(b) => {
+                Ok(b.downcast_ref::<Free>().unwrap())
+            },
+            None => Err(Error::BoxNotFound("free".to_string()))
+        }
     }
 }
 
@@ -96,9 +124,10 @@ impl std::fmt::Debug for Mp4 {
                 self.file, self.size
         )?;
 
-        for atom in self.atoms.iter() {
-            write!(f, "{:?}", atom)?;
-        }
+        write!(f, "{:?}", self.ftyp.as_ref().unwrap())?;
+        write!(f, "{:?}", self.moov.as_ref().unwrap())?;
+        write!(f, "{:?}", self.free.as_ref().unwrap())?;
+        write!(f, "{:?}", self.mdat.as_ref().unwrap())?;
         Ok(())
     }
 }

@@ -3,36 +3,68 @@
  * All rights reserved.
  */
 
-use crate::boxes::{Mp4Box, AtomName, Track, InnerAtom, Free};
+use crate::boxes::{Mp4Box, AtomName, Track, InnerAtom};
 use crate::Error;
 use byteorder::{BigEndian, ByteOrder};
 use crate::Header;
 
+#[derive(Default)]
 pub struct Movie {
-    atoms: Vec<Box<dyn Mp4Box>>,
+    mvhd: Option<Box<dyn Mp4Box>>, // movie header
+    tracks: Vec<Box<dyn Mp4Box>>, // movie tracks
+    udta: Option<Box<dyn Mp4Box>>, // user data
     header: Header,
     level: u8,
 }
 
-struct MovieHeader {
-    header: Header,
-    data: Vec<u8>,
-    level: u8,
-}
+impl Movie {
+    pub fn movie_header_box(&self) -> Result<&InnerAtom, Error> {
+        match self.mvhd.as_ref() {
+            Some(b) => {
+                Ok(b.downcast_ref::<InnerAtom>().unwrap())
+            },
+            None => Err(Error::BoxNotFound("mvhd".to_string()))
+        }
+    }
 
-struct Userdata {
-    header: Header,
-    data: Vec<u8>,
-    level: u8,
-}
+    pub fn user_data_box(&self) -> Result<&InnerAtom, Error> {
+        match self.udta.as_ref() {
+            Some(b) => {
+                Ok(b.downcast_ref::<InnerAtom>().unwrap())
+            },
+            None => Err(Error::BoxNotFound("udta".to_string()))
+        }
+    }
 
+    pub fn tracks_num(&self) -> usize {
+        self.tracks.len()
+    }
+
+    pub fn track_box(&self, id: usize) -> Result<&Track, Error> {
+        if self.tracks_num() == 0 {
+            return Err(Error::BoxNotFound("trak".to_string()));
+        }
+
+        match self.tracks.get(id) {
+            Some(b) => {
+                Ok(b.downcast_ref::<Track>().unwrap())
+            },
+            None => Err(Error::BoxNotFound("trak".to_string()))
+        }
+    }
+}
 
 
 impl Mp4Box for Movie {
 
     fn parse(data: &[u8], start: usize, level: u8) -> Result<Self, Error> {
-        let mut atoms = vec![];
         let header = Header::header(data, start)?;
+        let mut movie = Movie {
+            header,
+            level,
+            tracks: vec![],
+            ..Default::default()
+        };
         let mut index = 8; // skip the first 8 bytes that are Movie headers
 
         while index < data.len() {
@@ -43,48 +75,31 @@ impl Mp4Box for Movie {
             let name = std::str::from_utf8(&data[index + 4..index + 8])?;
             let name = AtomName::from(name);
 
-            let atom = match name {
+            match name {
                 AtomName::MovieHeader => {
-                    Box::new(
-                        MovieHeader::parse(&data[index..index + size], index + start, level + 1)?
-                    )
-                        as Box<dyn Mp4Box>
+                    let b =Box::new(
+                        InnerAtom::parse(&data[index..index + size], index + start, level + 1)?
+                    ) as Box<dyn Mp4Box>;
+                    movie.mvhd = Some(b);
                 }
                 AtomName::Track => {
-                    Box::new(
+                    let b = Box::new(
                         Track::parse(&data[index..index + size], index + start, level + 1)?
-                    )
-                        as Box<dyn Mp4Box>
+                    ) as Box<dyn Mp4Box>;
+                    movie.tracks.push(b);
                 },
                 AtomName::Userdata => {
-                    Box::new(
-                        Userdata::parse(&data[index..index + size], index + start, level + 1)?
-                    )
-                        as Box<dyn Mp4Box>
-                }
-                AtomName::Free =>  {
-                    Box::new(
-                        Free::parse(&data[index..index + size], index + start, level + 1)?
-                    )
-                        as Box<dyn Mp4Box>
-                }
-                _ => {
-                    Box::new(
+                    let b =Box::new(
                         InnerAtom::parse(&data[index..index + size], index + start, level + 1)?
-                    )
-                        as Box<dyn Mp4Box>
+                    ) as Box<dyn Mp4Box>;
+                    movie.udta = Some(b);
                 }
-            };
-
-            atoms.push(atom);
+                _ => { }
+            }
             index += size;
         }
 
-        Ok(Self {
-            atoms,
-            header,
-            level
-        })
+        Ok(movie)
     }
 
     fn start(&self) -> usize {
@@ -107,86 +122,19 @@ impl Mp4Box for Movie {
         unimplemented!()
     }
 
-    fn internals(&self) -> Option<&Vec<Box<dyn Mp4Box>>> {
-        Some(&self.atoms)
-    }
+    fn fields(&self) -> Option<Vec<&Box<dyn Mp4Box>>> {
+        let mut fields = vec![];
+        if self.udta.as_ref().is_some() {
+            fields.push(self.udta.as_ref().unwrap());
+        }
+        if self.mvhd.as_ref().is_some() {
+            fields.push(self.mvhd.as_ref().unwrap());
+        }
 
-    fn level(&self) -> u8 {
-        self.level
-    }
-}
-
-impl Mp4Box for MovieHeader {
-    fn parse(data: &[u8], start: usize, level: u8) -> Result<Self, Error> {
-        let header = Header::header(&data, start)?;
-        Ok(MovieHeader {
-            header,
-            data: data.to_vec(),
-            level
-        })
-    }
-
-    fn start(&self) -> usize {
-        self.header.start
-    }
-
-    fn end(&self) -> usize {
-        self.header.start + self.header.size
-    }
-
-    fn size(&self) -> usize {
-        self.header.size
-    }
-
-    fn name(&self) -> &str {
-        self.header.name.as_ref()
-    }
-
-    fn read(&self) -> Result<Vec<u8>, Error> {
-        Ok(self.data.clone())
-    }
-
-    fn internals(&self) -> Option<&Vec<Box<dyn Mp4Box>>> {
-        None
-    }
-
-    fn level(&self) -> u8 {
-        self.level
-    }
-}
-
-impl Mp4Box for Userdata {
-    fn parse(data: &[u8], start: usize, level: u8) -> Result<Self, Error> {
-        let header = Header::header(&data, start)?;
-        Ok(Userdata {
-            header,
-            data: data.to_vec(),
-            level
-        })
-    }
-
-    fn start(&self) -> usize {
-        self.header.start
-    }
-
-    fn end(&self) -> usize {
-        self.header.start + self.header.size
-    }
-
-    fn size(&self) -> usize {
-        self.header.size
-    }
-
-    fn name(&self) -> &str {
-        self.header.name.as_ref()
-    }
-
-    fn read(&self) -> Result<Vec<u8>, Error> {
-        Ok(self.data.clone())
-    }
-
-    fn internals(&self) -> Option<&Vec<Box<dyn Mp4Box>>> {
-        None
+        for track in self.tracks.iter() {
+            fields.push(track);
+        }
+        Some(fields)
     }
 
     fn level(&self) -> u8 {

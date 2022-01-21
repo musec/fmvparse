@@ -3,27 +3,129 @@
  * All rights reserved.
  */
 
-use crate::boxes::{Mp4Box, AtomName, InnerAtom};
+use crate::boxes::{Mp4Box, InnerAtom};
 use crate::error::Error;
 use byteorder::{BigEndian, ByteOrder};
 use crate::Header;
 
+#[derive(Debug, Default)]
 pub struct SampleTable {
-    atoms: Vec<Box<dyn Mp4Box>>,
+    stsd: Option<Box<dyn Mp4Box>>, // sample description
+    stts: Option<Box<dyn Mp4Box>>, // (decoding) time-to-sample
+    ctts: Option<Box<dyn Mp4Box>>, // (composition) time to sample
+    stss: Option<Box<dyn Mp4Box>>, // sync sample table
+    sdtp: Option<Box<dyn Mp4Box>>, // independent and disposable samples
+    stsc: Option<Box<dyn Mp4Box>>, //
+    stsz: Option<Box<dyn Mp4Box>>, // sample sizes (framing)
+    stco: Option<Box<dyn Mp4Box>>, // chunk offset, partial data-offset information
+    sgpd: Option<Box<dyn Mp4Box>>, // sample group description
+    sbgp: Option<Box<dyn Mp4Box>>, // sample-to-group
+
     header: Header,
     level: u8
 }
 
-struct SampleDesc {
-    atoms: Vec<Box<dyn Mp4Box>>,
-    header: Header,
-    level: u8
+impl SampleTable {
+    pub fn sample_desc_header_box(&self) -> Result<&InnerAtom, Error> {
+        match self.stsd.as_ref() {
+            Some(b) => {
+                Ok(b.downcast_ref::<InnerAtom>().unwrap())
+            },
+            None => Err(Error::BoxNotFound("stsd".to_string()))
+        }
+    }
+
+    pub fn decoding_time_to_sample_box(&self) -> Result<&InnerAtom, Error> {
+        match self.stts.as_ref() {
+            Some(b) => {
+                Ok(b.downcast_ref::<InnerAtom>().unwrap())
+            },
+            None => Err(Error::BoxNotFound("stts".to_string()))
+        }
+    }
+
+    pub fn composition_time_to_sample_box(&self) -> Result<&InnerAtom, Error> {
+        match self.ctts.as_ref() {
+            Some(b) => {
+                Ok(b.downcast_ref::<InnerAtom>().unwrap())
+            },
+            None => Err(Error::BoxNotFound("ctts".to_string()))
+        }
+    }
+
+    pub fn sync_sample_box(&self) -> Result<&InnerAtom, Error> {
+        match self.stss.as_ref() {
+            Some(b) => {
+                Ok(b.downcast_ref::<InnerAtom>().unwrap())
+            },
+            None => Err(Error::BoxNotFound("stss".to_string()))
+        }
+    }
+
+    pub fn ind_disp_samples_box(&self) -> Result<&InnerAtom, Error> {
+        match self.sdtp.as_ref() {
+            Some(b) => {
+                Ok(b.downcast_ref::<InnerAtom>().unwrap())
+            },
+            None => Err(Error::BoxNotFound("sdtp".to_string()))
+        }
+    }
+
+    pub fn stsc_box(&self) -> Result<&InnerAtom, Error> {
+        match self.stsc.as_ref() {
+            Some(b) => {
+                Ok(b.downcast_ref::<InnerAtom>().unwrap())
+            },
+            None => Err(Error::BoxNotFound("stsc".to_string()))
+        }
+    }
+
+    pub fn sample_sizes_box(&self) -> Result<&InnerAtom, Error> {
+        match self.stsz.as_ref() {
+            Some(b) => {
+                Ok(b.downcast_ref::<InnerAtom>().unwrap())
+            },
+            None => Err(Error::BoxNotFound("stsz".to_string()))
+        }
+    }
+
+    pub fn offset_info_box(&self) -> Result<&InnerAtom, Error> {
+        match self.stco.as_ref() {
+            Some(b) => {
+                Ok(b.downcast_ref::<InnerAtom>().unwrap())
+            },
+            None => Err(Error::BoxNotFound("stco".to_string()))
+        }
+    }
+
+    pub fn sample_group_desc_box(&self) -> Result<&InnerAtom, Error> {
+        match self.sgpd.as_ref() {
+            Some(b) => {
+                Ok(b.downcast_ref::<InnerAtom>().unwrap())
+            },
+            None => Err(Error::BoxNotFound("sgpd".to_string()))
+        }
+    }
+
+    pub fn sample_to_group_box(&self) -> Result<&InnerAtom, Error> {
+        match self.sbgp.as_ref() {
+            Some(b) => {
+                Ok(b.downcast_ref::<InnerAtom>().unwrap())
+            },
+            None => Err(Error::BoxNotFound("sbgp".to_string()))
+        }
+    }
 }
 
 impl Mp4Box for SampleTable {
     fn parse(data: &[u8], start: usize, level: u8) -> Result<Self, Error> where Self: Sized {
-        let mut atoms = vec![];
         let header = Header::header(data, start)?;
+        let mut sample_table = SampleTable {
+            header,
+            level,
+            ..Default::default()
+        };
+
         let mut index = 8; // skip the first 8 bytes that are Movie headers
 
         while index < data.len() {
@@ -32,32 +134,77 @@ impl Mp4Box for SampleTable {
             // The size is the entire size of the box, including the size and type header, fields, and all contained boxes.
             let size = BigEndian::read_u32(&data[index..index + 4]) as usize;
             let name = std::str::from_utf8(&data[index + 4..index + 8])?;
-            let name = AtomName::from(name);
+            // let name = AtomName::from(name);
 
-            let atom = match name {
-                AtomName::SampleDesc => {
-                    Box::new(
-                        SampleDesc::parse(&data[index..index + size], index + start, level + 1)?
-                    )
-                        as Box<dyn Mp4Box>
+            match name {
+                "stsd" => {
+                    let b = Box::new(
+                            InnerAtom::parse(&data[index..index + size], index + start, level + 1)?
+                        ) as Box<dyn Mp4Box>;
+                    sample_table.stsd = Some(b);
                 },
-                _ => {
-                    Box::new(
+                "stts" => {
+                    let b = Box::new(
                         InnerAtom::parse(&data[index..index + size], index + start, level + 1)?
-                    )
-                        as Box<dyn Mp4Box>
-                }
-            };
+                    ) as Box<dyn Mp4Box>;
+                    sample_table.stts = Some(b);
+                },
+                "ctts" => {
+                    let b = Box::new(
+                        InnerAtom::parse(&data[index..index + size], index + start, level + 1)?
+                    ) as Box<dyn Mp4Box>;
+                    sample_table.ctts = Some(b);
+                },
+                "stss" => {
+                    let b = Box::new(
+                        InnerAtom::parse(&data[index..index + size], index + start, level + 1)?
+                    ) as Box<dyn Mp4Box>;
+                    sample_table.stss = Some(b);
+                },
+                "sdtp" => {
+                    let b = Box::new(
+                        InnerAtom::parse(&data[index..index + size], index + start, level + 1)?
+                    ) as Box<dyn Mp4Box>;
+                    sample_table.sdtp = Some(b);
+                },
+                "stsc" => {
+                    let b = Box::new(
+                        InnerAtom::parse(&data[index..index + size], index + start, level + 1)?
+                    ) as Box<dyn Mp4Box>;
+                    sample_table.stsc = Some(b);
+                },
+                "stsz" => {
+                    let b = Box::new(
+                        InnerAtom::parse(&data[index..index + size], index + start, level + 1)?
+                    ) as Box<dyn Mp4Box>;
+                    sample_table.stsz = Some(b);
+                },
+                "stco" => {
+                    let b = Box::new(
+                        InnerAtom::parse(&data[index..index + size], index + start, level + 1)?
+                    ) as Box<dyn Mp4Box>;
+                    sample_table.stco = Some(b);
+                },
+                "sgpd" => {
+                    let b = Box::new(
+                        InnerAtom::parse(&data[index..index + size], index + start, level + 1)?
+                    ) as Box<dyn Mp4Box>;
+                    sample_table.sgpd = Some(b);
+                },
+                "sbgp" => {
+                    let b = Box::new(
+                        InnerAtom::parse(&data[index..index + size], index + start, level + 1)?
+                    ) as Box<dyn Mp4Box>;
+                    sample_table.sbgp = Some(b);
+                },
+                _ => {}
+            }
 
-            atoms.push(atom);
+            // atoms.push(atom);
             index += size;
         }
 
-        Ok(Self {
-            atoms,
-            header,
-            level
-        })
+        Ok(sample_table)
     }
 
     fn start(&self) -> usize {
@@ -80,67 +227,40 @@ impl Mp4Box for SampleTable {
         unimplemented!()
     }
 
-    fn internals(&self) -> Option<&Vec<Box<dyn Mp4Box>>> {
-        Some(&self.atoms)
-    }
+    fn fields(&self) -> Option<Vec<&Box<dyn Mp4Box>>> {
+        let mut fields = vec![];
+        if self.stsd.as_ref().is_some() {
+            fields.push(self.stsd.as_ref().unwrap());
+        }
+        if self.stts.as_ref().is_some() {
+            fields.push(self.stts.as_ref().unwrap());
+        }
+        if self.ctts.as_ref().is_some() {
+            fields.push(self.ctts.as_ref().unwrap());
+        }
+        if self.stss.as_ref().is_some() {
+            fields.push(self.stss.as_ref().unwrap());
+        }
+        if self.sdtp.as_ref().is_some() {
+            fields.push(self.sdtp.as_ref().unwrap());
+        }
+        if self.stsc.as_ref().is_some() {
+            fields.push(self.stsc.as_ref().unwrap());
+        }
+        if self.stsz.as_ref().is_some() {
+            fields.push(self.stsz.as_ref().unwrap());
+        }
+        if self.stco.as_ref().is_some() {
+            fields.push(self.stco.as_ref().unwrap());
+        }
+        if self.sgpd.as_ref().is_some() {
+            fields.push(self.sgpd.as_ref().unwrap());
+        }
+        if self.sbgp.as_ref().is_some() {
+            fields.push(self.sbgp.as_ref().unwrap());
+        }
 
-    fn level(&self) -> u8 {
-        self.level
-    }
-}
-
-
-impl Mp4Box for SampleDesc {
-    fn parse(data: &[u8], start: usize, level: u8) -> Result<Self, Error> where Self: Sized {
-        let header = Header::header(data, start)?;
-
-        let atoms = vec![];
-        // TODO there might be other internals here in other formats?
-        // let mut index = 0;
-        // while index < data.len() {
-        //
-        //     // the first 8 bytes includes the atom size and its name
-        //     // The size is the entire size of the box, including the size and type header, fields, and all contained boxes.
-        //     let size = BigEndian::read_u32(&data[index..index + 4]) as usize;
-        //     let name = std::str::from_utf8(&data[index + 4..index + 8])?;
-        //
-        //     let atom = Box::new(
-        //         InnerAtom::parse(&data[index..index + size], index + start)?
-        //     ) as Box<dyn Mp4Atom>;
-        //
-        //     atoms.push(atom);
-        //     index += size;
-        // }
-
-        Ok(Self {
-            atoms,
-            header,
-            level
-        })
-    }
-
-    fn start(&self) -> usize {
-        self.header.start
-    }
-
-    fn end(&self) -> usize {
-        self.header.start + self.header.size
-    }
-
-    fn size(&self) -> usize {
-        self.header.size
-    }
-
-    fn name(&self) -> &str {
-        self.header.name.as_ref()
-    }
-
-    fn read(&self) -> Result<Vec<u8>, Error> {
-        unimplemented!()
-    }
-
-    fn internals(&self) -> Option<&Vec<Box<dyn Mp4Box>>> {
-        Some(&self.atoms)
+        Some(fields)
     }
 
     fn level(&self) -> u8 {

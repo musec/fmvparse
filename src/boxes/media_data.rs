@@ -44,7 +44,7 @@ impl Mp4Box for MediaData {
         unimplemented!()
     }
 
-    fn internals(&self) -> Option<&Vec<Box<dyn Mp4Box>>> {
+    fn fields(&self) -> Option<Vec<&Box<dyn Mp4Box>>> {
         None
     }
 

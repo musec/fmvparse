@@ -4,8 +4,9 @@
  */
 
 use crate::Error;
+use downcast_rs::Downcast;
 
-pub trait Mp4Box {
+pub trait Mp4Box: Downcast {
     /// Read the atom from the data and parse it
     fn parse(data: &[u8], start: usize, level: u8) -> Result<Self, Error> where Self: Sized;
 
@@ -25,11 +26,13 @@ pub trait Mp4Box {
     fn read(&self) -> Result<Vec<u8>, Error>;
 
     /// Get the internal boxes of this box
-    fn internals(&self) -> Option<&Vec<Box<dyn Mp4Box>>>;
+    fn fields(&self) -> Option<Vec<&Box<dyn Mp4Box>>>;
 
     /// The box level
     fn level(&self) -> u8;
 }
+
+impl_downcast!(Mp4Box);
 
 impl std::fmt::Debug for dyn Mp4Box {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -39,7 +42,7 @@ impl std::fmt::Debug for dyn Mp4Box {
             self.name(), self.start(), self.size()
         )?;
 
-        let internals = self.internals();
+        let internals = self.fields();
         if internals.is_some() {
             for internal in internals.unwrap() {
                 // add indent based on the level
@@ -65,6 +68,8 @@ pub enum AtomName {
     TrackHeader,
     EditLists,
     Media,
+    MediaHeader,
+    MediaHandler,
     MediaInfo,
     SampleTable,
     SampleDesc,
@@ -84,6 +89,8 @@ impl From<&str> for AtomName {
             "tkhd" => AtomName::TrackHeader,
             "edts" => AtomName::EditLists,
             "mdia" => AtomName::Media,
+            "mdhd" => AtomName::MediaHeader,
+            "hdlr" => AtomName::MediaHandler,
             "minf" => AtomName::MediaInfo,
             "stbl" => AtomName::SampleTable,
             "stsd" => AtomName::SampleDesc,
@@ -105,6 +112,8 @@ impl std::convert::From<AtomName> for &str {
             AtomName::TrackHeader => "tkhd",
             AtomName::EditLists => "rdts",
             AtomName::Media => "mdia",
+            AtomName::MediaHeader => "mdhd",
+            AtomName::MediaHandler => "hdlr",
             AtomName::MediaInfo => "minf",
             AtomName::SampleTable => "stbl",
             AtomName::SampleDesc => "stsd",

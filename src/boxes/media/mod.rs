@@ -15,16 +15,53 @@ use crate::error::Error;
 use byteorder::{BigEndian, ByteOrder};
 use crate::Header;
 
+#[derive(Default)]
 pub struct Media {
-    atoms: Vec<Box<dyn Mp4Box>>,
+    mdhd: Option<Box<dyn Mp4Box>>, // media header
+    hdlr: Option<Box<dyn Mp4Box>>, // media handler
+    minf: Option<Box<dyn Mp4Box>>, // media info
     header: Header,
     level: u8
 }
 
+impl Media {
+    pub fn media_header_box(&self) -> Result<&InnerAtom, Error> {
+        match self.mdhd.as_ref() {
+            Some(b) => {
+                Ok(b.downcast_ref::<InnerAtom>().unwrap())
+            },
+            None => Err(Error::BoxNotFound("mdhd".to_string()))
+        }
+    }
+
+    pub fn media_handler_box(&self) -> Result<&InnerAtom, Error> {
+        match self.hdlr.as_ref() {
+            Some(b) => {
+                Ok(b.downcast_ref::<InnerAtom>().unwrap())
+            },
+            None => Err(Error::BoxNotFound("hdlr".to_string()))
+        }
+    }
+
+    pub fn media_info_box(&self) -> Result<&MediaInfo, Error> {
+        match self.minf.as_ref() {
+            Some(b) => {
+                Ok(b.downcast_ref::<MediaInfo>().unwrap())
+            },
+            None => Err(Error::BoxNotFound("minf".to_string()))
+        }
+    }
+}
+
 impl Mp4Box for Media {
     fn parse(data: &[u8], start: usize, level: u8) -> Result<Self, Error> where Self: Sized {
-        let mut atoms = vec![];
         let header = Header::header(data, start)?;
+        let mut media = Media {
+            header,
+            level,
+            ..Default::default()
+        };
+
         let mut index = 8; // skip the first 8 bytes that are Movie headers
 
         while index < data.len() {
@@ -35,30 +72,31 @@ impl Mp4Box for Media {
             let name = std::str::from_utf8(&data[index + 4..index + 8])?;
             let name = AtomName::from(name);
 
-            let atom = match name {
+            match name {
                 AtomName::MediaInfo => {
-                    Box::new(
+                    let b = Box::new(
                         MediaInfo::parse(&data[index..index + size], index + start, level + 1)?
-                    )
-                        as Box<dyn Mp4Box>
+                    ) as Box<dyn Mp4Box>;
+                    media.minf = Some(b);
                 },
-                _ => {
-                    Box::new(
+                AtomName::MediaHeader => {
+                    let b = Box::new(
                         InnerAtom::parse(&data[index..index + size], index + start, level + 1)?
-                    )
-                        as Box<dyn Mp4Box>
-                }
-            };
-
-            atoms.push(atom);
+                    ) as Box<dyn Mp4Box>;
+                    media.mdhd = Some(b);
+                },
+                AtomName::MediaHandler => {
+                    let b = Box::new(
+                        InnerAtom::parse(&data[index..index + size], index + start, level + 1)?
+                    ) as Box<dyn Mp4Box>;
+                    media.hdlr = Some(b);
+                },
+                _ => { }
+            }
             index += size;
         }
 
-        Ok(Self {
-            atoms,
-            header,
-            level
-        })
+        Ok(media)
     }
 
     fn start(&self) -> usize {
@@ -81,8 +119,19 @@ impl Mp4Box for Media {
         unimplemented!()
     }
 
-    fn internals(&self) -> Option<&Vec<Box<dyn Mp4Box>>> {
-        Some(&self.atoms)
+    fn fields(&self) -> Option<Vec<&Box<dyn Mp4Box>>> {
+        let mut fields = vec![];
+        if self.mdhd.as_ref().is_some() {
+            fields.push(self.mdhd.as_ref().unwrap());
+        }
+        if self.hdlr.as_ref().is_some() {
+            fields.push(self.hdlr.as_ref().unwrap());
+        }
+        if self.minf.as_ref().is_some() {
+            fields.push(self.minf.as_ref().unwrap());
+        }
+
+        Some(fields)
     }
 
     fn level(&self) -> u8 {

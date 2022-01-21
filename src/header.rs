@@ -6,7 +6,7 @@
 use crate::error::Error;
 use byteorder::{BigEndian, ByteOrder};
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Header {
     pub name: String,
     pub size: usize,

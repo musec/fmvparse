@@ -42,7 +42,7 @@ impl Mp4Box for Free {
         unimplemented!()
     }
 
-    fn internals(&self) -> Option<&Vec<Box<dyn Mp4Box>>> {
+    fn fields(&self) -> Option<Vec<&Box<dyn Mp4Box>>> {
         None
     }
 

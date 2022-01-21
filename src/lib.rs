@@ -11,5 +11,8 @@ pub mod mp4;
 mod boxes;
 mod header;
 
+#[macro_use]
+extern crate downcast_rs;
+
 pub use error::Error;
 pub use header::Header;
