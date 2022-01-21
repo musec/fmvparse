@@ -20,7 +20,7 @@ struct MovieHeader {
     level: u8,
 }
 
-struct Udata {
+struct Userdata {
     header: Header,
     data: Vec<u8>,
     level: u8,
@@ -56,12 +56,12 @@ impl Mp4Box for Movie {
                     )
                         as Box<dyn Mp4Box>
                 },
-                AtomName::Udata => {
+                AtomName::Userdata => {
                     Box::new(
-                        Udata::parse(&data[index..index + size], index + start, level + 1)?
+                        Userdata::parse(&data[index..index + size], index + start, level + 1)?
                     )
                         as Box<dyn Mp4Box>
-                },
+                }
                 AtomName::Free =>  {
                     Box::new(
                         Free::parse(&data[index..index + size], index + start, level + 1)?
@@ -155,10 +155,10 @@ impl Mp4Box for MovieHeader {
     }
 }
 
-impl Mp4Box for Udata {
+impl Mp4Box for Userdata {
     fn parse(data: &[u8], start: usize, level: u8) -> Result<Self, Error> {
         let header = Header::header(&data, start)?;
-        Ok(Udata {
+        Ok(Userdata {
             header,
             data: data.to_vec(),
             level
