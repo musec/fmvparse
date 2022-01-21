@@ -3,21 +3,20 @@
  * All rights reserved.
  */
 
-
-mod movie;
 mod file_type;
-mod media_data;
-mod mp4_box;
 mod free;
-mod track;
 mod inner;
 mod media;
+mod media_data;
+mod movie;
+mod mp4_box;
+mod track;
 
-pub use movie::Movie;
-pub use media::{Media, SampleTable, MediaInfo};
 pub use file_type::FileType;
-pub use media_data::MediaData;
-pub use mp4_box::{Mp4Box, AtomName};
 pub use free::Free;
-pub use track::Track;
 pub use inner::InnerAtom;
+pub use media::{Media, MediaInfo, SampleTable};
+pub use media_data::MediaData;
+pub use movie::Movie;
+pub use mp4_box::{AtomName, Mp4Box};
+pub use track::Track;

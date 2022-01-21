@@ -3,15 +3,15 @@
  * All rights reserved.
  */
 
-use crate::boxes::{Mp4Box, AtomName, Track, InnerAtom};
+use crate::boxes::{AtomName, InnerAtom, Mp4Box, Track};
 use crate::Error;
-use byteorder::{BigEndian, ByteOrder};
 use crate::Header;
+use byteorder::{BigEndian, ByteOrder};
 
 #[derive(Default)]
 pub struct Movie {
     mvhd: Option<Box<dyn Mp4Box>>, // movie header
-    tracks: Vec<Box<dyn Mp4Box>>, // movie tracks
+    tracks: Vec<Box<dyn Mp4Box>>,  // movie tracks
     udta: Option<Box<dyn Mp4Box>>, // user data
     header: Header,
     level: u8,
@@ -20,19 +20,15 @@ pub struct Movie {
 impl Movie {
     pub fn movie_header_box(&self) -> Result<&InnerAtom, Error> {
         match self.mvhd.as_ref() {
-            Some(b) => {
-                Ok(b.downcast_ref::<InnerAtom>().unwrap())
-            },
-            None => Err(Error::BoxNotFound("mvhd".to_string()))
+            Some(b) => Ok(b.downcast_ref::<InnerAtom>().unwrap()),
+            None => Err(Error::BoxNotFound("mvhd".to_string())),
         }
     }
 
     pub fn user_data_box(&self) -> Result<&InnerAtom, Error> {
         match self.udta.as_ref() {
-            Some(b) => {
-                Ok(b.downcast_ref::<InnerAtom>().unwrap())
-            },
-            None => Err(Error::BoxNotFound("udta".to_string()))
+            Some(b) => Ok(b.downcast_ref::<InnerAtom>().unwrap()),
+            None => Err(Error::BoxNotFound("udta".to_string())),
         }
     }
 
@@ -46,17 +42,13 @@ impl Movie {
         }
 
         match self.tracks.get(id) {
-            Some(b) => {
-                Ok(b.downcast_ref::<Track>().unwrap())
-            },
-            None => Err(Error::BoxNotFound("trak".to_string()))
+            Some(b) => Ok(b.downcast_ref::<Track>().unwrap()),
+            None => Err(Error::BoxNotFound("trak".to_string())),
         }
     }
 }
 
-
 impl Mp4Box for Movie {
-
     fn parse(data: &[u8], start: usize, level: u8) -> Result<Self, Error> {
         let header = Header::header(data, start)?;
         let mut movie = Movie {
@@ -68,7 +60,6 @@ impl Mp4Box for Movie {
         let mut index = 8; // skip the first 8 bytes that are Movie headers
 
         while index < data.len() {
-
             // the first 8 bytes includes the atom size and its name
             // The size is the entire size of the box, including the size and type header, fields, and all contained boxes.
             let size = BigEndian::read_u32(&data[index..index + 4]) as usize;
@@ -77,24 +68,30 @@ impl Mp4Box for Movie {
 
             match name {
                 AtomName::MovieHeader => {
-                    let b =Box::new(
-                        InnerAtom::parse(&data[index..index + size], index + start, level + 1)?
-                    ) as Box<dyn Mp4Box>;
+                    let b = Box::new(InnerAtom::parse(
+                        &data[index..index + size],
+                        index + start,
+                        level + 1,
+                    )?) as Box<dyn Mp4Box>;
                     movie.mvhd = Some(b);
                 }
                 AtomName::Track => {
-                    let b = Box::new(
-                        Track::parse(&data[index..index + size], index + start, level + 1)?
-                    ) as Box<dyn Mp4Box>;
+                    let b = Box::new(Track::parse(
+                        &data[index..index + size],
+                        index + start,
+                        level + 1,
+                    )?) as Box<dyn Mp4Box>;
                     movie.tracks.push(b);
-                },
+                }
                 AtomName::Userdata => {
-                    let b =Box::new(
-                        InnerAtom::parse(&data[index..index + size], index + start, level + 1)?
-                    ) as Box<dyn Mp4Box>;
+                    let b = Box::new(InnerAtom::parse(
+                        &data[index..index + size],
+                        index + start,
+                        level + 1,
+                    )?) as Box<dyn Mp4Box>;
                     movie.udta = Some(b);
                 }
-                _ => { }
+                _ => {}
             }
             index += size;
         }

@@ -11,7 +11,7 @@ use crate::Header;
 pub struct MediaData {
     header: Header,
     data: Vec<u8>,
-    level: u8
+    level: u8,
 }
 
 impl Mp4Box for MediaData {
@@ -20,7 +20,7 @@ impl Mp4Box for MediaData {
         Ok(MediaData {
             header,
             data: data.to_vec(),
-            level
+            level,
         })
     }
 

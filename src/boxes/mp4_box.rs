@@ -8,7 +8,9 @@ use downcast_rs::Downcast;
 
 pub trait Mp4Box: Downcast {
     /// Read the atom from the data and parse it
-    fn parse(data: &[u8], start: usize, level: u8) -> Result<Self, Error> where Self: Sized;
+    fn parse(data: &[u8], start: usize, level: u8) -> Result<Self, Error>
+    where
+        Self: Sized;
 
     /// The start address of the box
     fn start(&self) -> usize;
@@ -39,7 +41,9 @@ impl std::fmt::Debug for dyn Mp4Box {
         write!(
             f,
             "{}: {{start address: {}, size: {}}} \n",
-            self.name(), self.start(), self.size()
+            self.name(),
+            self.start(),
+            self.size()
         )?;
 
         let internals = self.fields();
@@ -73,7 +77,7 @@ pub enum AtomName {
     MediaInfo,
     SampleTable,
     SampleDesc,
-    Other
+    Other,
 }
 
 impl From<&str> for AtomName {
@@ -94,7 +98,7 @@ impl From<&str> for AtomName {
             "minf" => AtomName::MediaInfo,
             "stbl" => AtomName::SampleTable,
             "stsd" => AtomName::SampleDesc,
-            _ => AtomName::Other
+            _ => AtomName::Other,
         }
     }
 }
@@ -117,8 +121,7 @@ impl std::convert::From<AtomName> for &str {
             AtomName::MediaInfo => "minf",
             AtomName::SampleTable => "stbl",
             AtomName::SampleDesc => "stsd",
-            AtomName::Other => "other"
+            AtomName::Other => "other",
         }
     }
 }
-

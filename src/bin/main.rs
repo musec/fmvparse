@@ -1,16 +1,15 @@
-
 extern crate structopt;
 
 // use fmvparse::reader;
+use fmvparse::mp4::Mp4;
 use std::io;
 use std::path::PathBuf;
 use structopt::StructOpt;
-use fmvparse::mp4::Mp4;
 
 #[derive(Debug, StructOpt)]
 #[structopt(
-name = "fmv-parser",
-about = "Parse fmv files and extract the internal structures."
+    name = "fmv-parser",
+    about = "Parse fmv files and extract the internal structures."
 )]
 struct Opt {
     #[structopt(short, long)]

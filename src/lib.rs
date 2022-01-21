@@ -6,10 +6,10 @@
 // pub mod boxes;
 // pub mod reader;
 
-mod error;
-pub mod mp4;
 mod boxes;
+mod error;
 mod header;
+pub mod mp4;
 
 #[macro_use]
 extern crate downcast_rs;

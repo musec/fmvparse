@@ -10,16 +10,13 @@ use crate::Header;
 #[derive(Debug)]
 pub struct Free {
     header: Header,
-    level: u8
+    level: u8,
 }
 
 impl Mp4Box for Free {
     fn parse(data: &[u8], start: usize, level: u8) -> Result<Self, Error> {
         let header = Header::header(data, start)?;
-        Ok(Free {
-            header,
-            level
-        })
+        Ok(Free { header, level })
     }
 
     fn start(&self) -> usize {

@@ -20,7 +20,7 @@ impl Mp4Box for FileType {
         Ok(FileType {
             header,
             data: data.to_vec(),
-            level
+            level,
         })
     }
 

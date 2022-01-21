@@ -11,17 +11,20 @@ use crate::Header;
 pub struct InnerAtom {
     header: Header,
     data: Vec<u8>,
-    level: u8
+    level: u8,
 }
 
 impl Mp4Box for InnerAtom {
-    fn parse(data: &[u8], start: usize, level: u8) -> Result<Self, Error> where Self: Sized {
+    fn parse(data: &[u8], start: usize, level: u8) -> Result<Self, Error>
+    where
+        Self: Sized,
+    {
         let header = Header::header(data, start)?;
 
         Ok(InnerAtom {
             header,
             data: data.to_vec(),
-            level
+            level,
         })
     }
 
@@ -53,4 +56,3 @@ impl Mp4Box for InnerAtom {
         self.level
     }
 }
-

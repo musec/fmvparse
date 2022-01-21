@@ -10,7 +10,7 @@ use byteorder::{BigEndian, ByteOrder};
 pub struct Header {
     pub name: String,
     pub size: usize,
-    pub start: usize
+    pub start: usize,
 }
 
 impl Header {
@@ -20,10 +20,6 @@ impl Header {
         let size = BigEndian::read_u32(&data[0..4]) as usize;
         let name = std::str::from_utf8(&data[4..8])?.to_string();
 
-        Ok(Self {
-            name,
-            size,
-            start
-        })
+        Ok(Self { name, size, start })
     }
 }
