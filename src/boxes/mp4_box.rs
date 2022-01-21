@@ -55,7 +55,7 @@ impl std::fmt::Debug for dyn Mp4Box {
 
 #[derive(Debug)]
 pub enum AtomName {
-    FType,
+    FileType,
     Movie,
     MediaData,
     Free,
@@ -74,7 +74,7 @@ pub enum AtomName {
 impl From<&str> for AtomName {
     fn from(name: &str) -> Self {
         match name {
-            "ftyp" => AtomName::FType,
+            "ftyp" => AtomName::FileType,
             "moov" => AtomName::Movie,
             "mdat" => AtomName::MediaData,
             "free" => AtomName::Free,
@@ -95,7 +95,7 @@ impl From<&str> for AtomName {
 impl std::convert::From<AtomName> for &str {
     fn from(an: AtomName) -> Self {
         match an {
-            AtomName::FType => "ftyp",
+            AtomName::FileType => "ftyp",
             AtomName::Movie => "moov",
             AtomName::MediaData => "mdat",
             AtomName::Free => "free",

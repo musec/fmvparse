@@ -8,16 +8,16 @@ use crate::Error;
 use crate::Header;
 
 #[derive(Debug)]
-pub struct FType {
+pub struct FileType {
     header: Header,
     data: Vec<u8>,
     level: u8,
 }
 
-impl Mp4Box for FType {
+impl Mp4Box for FileType {
     fn parse(data: &[u8], start: usize, level: u8) -> Result<Self, Error> {
         let header = Header::header(data, start)?;
-        Ok(FType {
+        Ok(FileType {
             header,
             data: data.to_vec(),
             level
