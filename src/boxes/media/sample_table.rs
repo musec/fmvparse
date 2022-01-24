@@ -229,37 +229,37 @@ impl Mp4Box for SampleTable {
         unimplemented!()
     }
 
-    fn fields(&self) -> Option<Vec<&Box<dyn Mp4Box>>> {
+    fn fields(&self) -> Option<Vec<&dyn Mp4Box>> {
         let mut fields = vec![];
         if let Some(stsd) = self.stsd.as_ref() {
-            fields.push(stsd);
+            fields.push(stsd.as_ref());
         }
         if let Some(stts) = self.stts.as_ref() {
-            fields.push(stts);
+            fields.push(stts.as_ref());
         }
         if let Some(ctts) = self.ctts.as_ref() {
-            fields.push(ctts);
+            fields.push(ctts.as_ref());
         }
         if let Some(stss) = self.stss.as_ref() {
-            fields.push(stss);
+            fields.push(stss.as_ref());
         }
         if let Some(sdtp) = self.sdtp.as_ref() {
-            fields.push(sdtp);
+            fields.push(sdtp.as_ref());
         }
         if let Some(stsc) = self.stsc.as_ref() {
-            fields.push(stsc);
+            fields.push(stsc.as_ref());
         }
         if let Some(stsz) = self.stsz.as_ref() {
-            fields.push(stsz);
+            fields.push(stsz.as_ref());
         }
         if let Some(stco) = self.stco.as_ref() {
-            fields.push(stco);
+            fields.push(stco.as_ref());
         }
         if let Some(sgpd) = self.sgpd.as_ref() {
-            fields.push(sgpd);
+            fields.push(sgpd.as_ref());
         }
         if let Some(sbgp) = self.sbgp.as_ref() {
-            fields.push(sbgp);
+            fields.push(sbgp.as_ref());
         }
 
         Some(fields)

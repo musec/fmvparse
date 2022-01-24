@@ -12,9 +12,6 @@ use structopt::StructOpt;
     about = "Parse fmv files and extract the internal structures."
 )]
 struct Opt {
-    #[structopt(short, long)]
-    verbose: bool,
-
     #[structopt(short, long, env = "FMV_FILE")]
     /// The input file to be parsed
     file: PathBuf,

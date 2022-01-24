@@ -48,7 +48,7 @@ impl Mp4Box for InnerAtom {
         Ok(self.data.clone())
     }
 
-    fn fields(&self) -> Option<Vec<&Box<dyn Mp4Box>>> {
+    fn fields(&self) -> Option<Vec<&dyn Mp4Box>> {
         None
     }
 

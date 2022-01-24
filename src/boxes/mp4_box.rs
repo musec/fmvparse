@@ -28,7 +28,7 @@ pub trait Mp4Box: Downcast {
     fn read(&self) -> Result<Vec<u8>, Error>;
 
     /// Get the internal boxes of this box
-    fn fields(&self) -> Option<Vec<&Box<dyn Mp4Box>>>;
+    fn fields(&self) -> Option<Vec<&dyn Mp4Box>>;
 
     /// The box level
     fn level(&self) -> u8;
@@ -38,9 +38,9 @@ impl_downcast!(Mp4Box);
 
 impl std::fmt::Debug for dyn Mp4Box {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
+        writeln!(
             f,
-            "{}: {{start address: {}, size: {}}} \n",
+            "{}: {{start address: {}, size: {}}}",
             self.name(),
             self.start(),
             self.size()

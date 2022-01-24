@@ -120,16 +120,16 @@ impl Mp4Box for Media {
         unimplemented!()
     }
 
-    fn fields(&self) -> Option<Vec<&Box<dyn Mp4Box>>> {
+    fn fields(&self) -> Option<Vec<&dyn Mp4Box>> {
         let mut fields = vec![];
         if let Some(mdhd) = self.mdhd.as_ref() {
-            fields.push(mdhd);
+            fields.push(mdhd.as_ref());
         }
         if let Some(hdlr) = self.hdlr.as_ref() {
-            fields.push(hdlr);
+            fields.push(hdlr.as_ref());
         }
         if let Some(minf) = self.minf.as_ref() {
-            fields.push(minf);
+            fields.push(minf.as_ref());
         }
 
         Some(fields)
