@@ -41,7 +41,7 @@ impl Mp4Box for MediaData {
     }
 
     fn read(&self) -> Result<Vec<u8>, Error> {
-        unimplemented!()
+        Ok(self.data.to_vec())
     }
 
     fn fields(&self) -> Option<Vec<&Box<dyn Mp4Box>>> {
