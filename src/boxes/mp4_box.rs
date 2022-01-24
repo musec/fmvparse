@@ -47,8 +47,8 @@ impl std::fmt::Debug for dyn Mp4Box {
         )?;
 
         let internals = self.fields();
-        if internals.is_some() {
-            for internal in internals.unwrap() {
+        if let Some(internals) = internals {
+            for internal in internals {
                 // add indent based on the level
                 for _ in 0..internal.level() - 1 {
                     write!(f, "\t")?;

@@ -122,14 +122,14 @@ impl Mp4Box for Media {
 
     fn fields(&self) -> Option<Vec<&Box<dyn Mp4Box>>> {
         let mut fields = vec![];
-        if self.mdhd.as_ref().is_some() {
-            fields.push(self.mdhd.as_ref().unwrap());
+        if let Some(mdhd) = self.mdhd.as_ref() {
+            fields.push(mdhd);
         }
-        if self.hdlr.as_ref().is_some() {
-            fields.push(self.hdlr.as_ref().unwrap());
+        if let Some(hdlr) = self.hdlr.as_ref() {
+            fields.push(hdlr);
         }
-        if self.minf.as_ref().is_some() {
-            fields.push(self.minf.as_ref().unwrap());
+        if let Some(minf) = self.minf.as_ref() {
+            fields.push(minf);
         }
 
         Some(fields)

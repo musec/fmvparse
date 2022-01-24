@@ -131,14 +131,14 @@ impl Mp4Box for Track {
 
     fn fields(&self) -> Option<Vec<&Box<dyn Mp4Box>>> {
         let mut fields = vec![];
-        if self.tkhd.as_ref().is_some() {
-            fields.push(self.tkhd.as_ref().unwrap());
+        if let Some(tkhd) = self.tkhd.as_ref() {
+            fields.push(tkhd);
         }
-        if self.edts.as_ref().is_some() {
-            fields.push(self.edts.as_ref().unwrap());
+        if let Some(edts) = self.edts.as_ref() {
+            fields.push(edts);
         }
-        if self.mdia.as_ref().is_some() {
-            fields.push(self.mdia.as_ref().unwrap());
+        if let Some(mdia) = self.mdia.as_ref() {
+            fields.push(mdia);
         }
 
         Some(fields)
@@ -201,8 +201,8 @@ impl Mp4Box for EditLists {
 
     fn fields(&self) -> Option<Vec<&Box<dyn Mp4Box>>> {
         let mut fields = vec![];
-        if self.elst.as_ref().is_some() {
-            fields.push(self.elst.as_ref().unwrap());
+        if let Some(elst) = self.elst.as_ref() {
+            fields.push(elst);
         }
 
         Some(fields)

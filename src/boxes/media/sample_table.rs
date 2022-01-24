@@ -231,35 +231,35 @@ impl Mp4Box for SampleTable {
 
     fn fields(&self) -> Option<Vec<&Box<dyn Mp4Box>>> {
         let mut fields = vec![];
-        if self.stsd.as_ref().is_some() {
-            fields.push(self.stsd.as_ref().unwrap());
+        if let Some(stsd) = self.stsd.as_ref() {
+            fields.push(stsd);
         }
-        if self.stts.as_ref().is_some() {
-            fields.push(self.stts.as_ref().unwrap());
+        if let Some(stts) = self.stts.as_ref() {
+            fields.push(stts);
         }
-        if self.ctts.as_ref().is_some() {
-            fields.push(self.ctts.as_ref().unwrap());
+        if let Some(ctts) = self.ctts.as_ref() {
+            fields.push(ctts);
         }
-        if self.stss.as_ref().is_some() {
-            fields.push(self.stss.as_ref().unwrap());
+        if let Some(stss) = self.stss.as_ref() {
+            fields.push(stss);
         }
-        if self.sdtp.as_ref().is_some() {
-            fields.push(self.sdtp.as_ref().unwrap());
+        if let Some(sdtp) = self.sdtp.as_ref() {
+            fields.push(sdtp);
         }
-        if self.stsc.as_ref().is_some() {
-            fields.push(self.stsc.as_ref().unwrap());
+        if let Some(stsc) = self.stsc.as_ref() {
+            fields.push(stsc);
         }
-        if self.stsz.as_ref().is_some() {
-            fields.push(self.stsz.as_ref().unwrap());
+        if let Some(stsz) = self.stsz.as_ref() {
+            fields.push(stsz);
         }
-        if self.stco.as_ref().is_some() {
-            fields.push(self.stco.as_ref().unwrap());
+        if let Some(stco) = self.stco.as_ref() {
+            fields.push(stco);
         }
-        if self.sgpd.as_ref().is_some() {
-            fields.push(self.sgpd.as_ref().unwrap());
+        if let Some(sgpd) = self.sgpd.as_ref() {
+            fields.push(sgpd);
         }
-        if self.sbgp.as_ref().is_some() {
-            fields.push(self.sbgp.as_ref().unwrap());
+        if let Some(sbgp) = self.sbgp.as_ref() {
+            fields.push(sbgp);
         }
 
         Some(fields)

@@ -121,11 +121,11 @@ impl Mp4Box for Movie {
 
     fn fields(&self) -> Option<Vec<&Box<dyn Mp4Box>>> {
         let mut fields = vec![];
-        if self.udta.as_ref().is_some() {
-            fields.push(self.udta.as_ref().unwrap());
+        if let Some(udta) = self.udta.as_ref() {
+            fields.push(udta);
         }
-        if self.mvhd.as_ref().is_some() {
-            fields.push(self.mvhd.as_ref().unwrap());
+        if let Some(mvhd) = self.mvhd.as_ref() {
+            fields.push(mvhd);
         }
 
         for track in self.tracks.iter() {
