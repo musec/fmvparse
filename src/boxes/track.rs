@@ -61,7 +61,7 @@ impl Mp4Box for Track {
     where
         Self: Sized,
     {
-        let header = Header::header(data, start)?;
+        let header = Header::new(data, start)?;
         let mut track = Track {
             header,
             level,
@@ -151,7 +151,7 @@ impl Mp4Box for Track {
 
 impl Mp4Box for EditLists {
     fn parse(data: &[u8], start: usize, level: u8) -> Result<Self, Error> {
-        let header = Header::header(data, start)?;
+        let header = Header::new(data, start)?;
         let mut edit_list = EditLists {
             header,
             level,

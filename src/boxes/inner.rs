@@ -19,7 +19,7 @@ impl Mp4Box for InnerAtom {
     where
         Self: Sized,
     {
-        let header = Header::header(data, start)?;
+        let header = Header::new(data, start)?;
 
         Ok(InnerAtom {
             header,

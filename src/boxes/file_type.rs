@@ -16,7 +16,7 @@ pub struct FileType {
 
 impl Mp4Box for FileType {
     fn parse(data: &[u8], start: usize, level: u8) -> Result<Self, Error> {
-        let header = Header::header(data, start)?;
+        let header = Header::new(data, start)?;
         Ok(FileType {
             header,
             data: data.to_vec(),
@@ -41,7 +41,7 @@ impl Mp4Box for FileType {
     }
 
     fn read(&self) -> Result<Vec<u8>, Error> {
-        unimplemented!()
+        Ok(self.data.to_vec())
     }
 
     fn fields(&self) -> Option<Vec<&Box<dyn Mp4Box>>> {

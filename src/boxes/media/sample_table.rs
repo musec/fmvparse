@@ -102,7 +102,7 @@ impl Mp4Box for SampleTable {
     where
         Self: Sized,
     {
-        let header = Header::header(data, start)?;
+        let header = Header::new(data, start)?;
         let mut sample_table = SampleTable {
             header,
             level,

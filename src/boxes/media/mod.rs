@@ -51,7 +51,7 @@ impl Mp4Box for Media {
     where
         Self: Sized,
     {
-        let header = Header::header(data, start)?;
+        let header = Header::new(data, start)?;
         let mut media = Media {
             header,
             level,

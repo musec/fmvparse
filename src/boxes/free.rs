@@ -15,7 +15,7 @@ pub struct Free {
 
 impl Mp4Box for Free {
     fn parse(data: &[u8], start: usize, level: u8) -> Result<Self, Error> {
-        let header = Header::header(data, start)?;
+        let header = Header::new(data, start)?;
         Ok(Free { header, level })
     }
 

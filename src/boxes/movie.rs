@@ -50,7 +50,7 @@ impl Movie {
 
 impl Mp4Box for Movie {
     fn parse(data: &[u8], start: usize, level: u8) -> Result<Self, Error> {
-        let header = Header::header(data, start)?;
+        let header = Header::new(data, start)?;
         let mut movie = Movie {
             header,
             level,

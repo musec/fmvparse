@@ -16,7 +16,7 @@ pub struct MediaData {
 
 impl Mp4Box for MediaData {
     fn parse(data: &[u8], start: usize, level: u8) -> Result<Self, Error> {
-        let header = Header::header(data, start)?;
+        let header = Header::new(data, start)?;
         Ok(MediaData {
             header,
             data: data.to_vec(),
