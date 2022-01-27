@@ -7,6 +7,7 @@ use crate::boxes::{AtomName, InnerAtom, Media, Mp4Box};
 use crate::error::Error;
 use crate::Header;
 use byteorder::{BigEndian, ByteOrder};
+use std::io::{Read, Seek, SeekFrom};
 
 #[derive(Default)]
 pub struct Track {
@@ -57,46 +58,49 @@ impl EditLists {
 }
 
 impl Mp4Box for Track {
-    fn parse(data: &[u8], start: usize, level: u8) -> Result<Self, Error>
-    where
-        Self: Sized,
-    {
-        let header = Header::new(data, start)?;
+    fn parse<R: Read + Seek>(reader: &mut R, start: u64, level: u8) -> Result<Self, Error> {
+        let header = Header::new(reader, start)?;
+        let len = header.size as u64;
         let mut track = Track {
             header,
             level,
             ..Default::default()
         };
-        let mut index = 8; // skip the first 8 bytes that are Movie headers
+        let mut index = start + 8; // skip the first 8 bytes that are headers
 
-        while index < data.len() {
+        while index < len {
             // the first 8 bytes includes the atom size and its name
             // The size is the entire size of the box, including the size and type header, fields, and all contained boxes.
-            let size = BigEndian::read_u32(&data[index..index + 4]) as usize;
-            let name = std::str::from_utf8(&data[index + 4..index + 8])?;
+            let mut size = vec![0u8; 4];
+            let mut name = vec![0u8; 4];
+            reader.seek(SeekFrom::Start(index as u64))?;
+            reader.read_exact(&mut size)?;
+            reader.read_exact(&mut name)?;
+            let size = BigEndian::read_u32(&size) as u64;
+            let name = std::str::from_utf8(&name)?;
             let name = AtomName::from(name);
 
             match name {
                 AtomName::EditLists => {
                     let b = Box::new(EditLists::parse(
-                        &data[index..index + size],
-                        index + start,
+                        reader,
+                        index,
                         level + 1,
                     )?) as Box<dyn Mp4Box>;
                     track.edts = Some(b);
                 }
                 AtomName::Media => {
                     let b = Box::new(Media::parse(
-                        &data[index..index + size],
-                        index + start,
+                        reader,
+                        index,
                         level + 1,
                     )?) as Box<dyn Mp4Box>;
                     track.mdia = Some(b);
                 }
                 AtomName::TrackHeader => {
                     let b = Box::new(InnerAtom::parse(
-                        &data[index..index + size],
-                        index + start,
+                        reader,
+                        index,
                         level + 1,
                     )?) as Box<dyn Mp4Box>;
                     track.tkhd = Some(b);
@@ -109,12 +113,8 @@ impl Mp4Box for Track {
         Ok(track)
     }
 
-    fn start(&self) -> usize {
+    fn start(&self) -> u64 {
         self.header.start
-    }
-
-    fn end(&self) -> usize {
-        self.header.start + self.header.size
     }
 
     fn size(&self) -> usize {
@@ -123,10 +123,6 @@ impl Mp4Box for Track {
 
     fn name(&self) -> &str {
         self.header.name.as_ref()
-    }
-
-    fn read(&self) -> Result<Vec<u8>, Error> {
-        unimplemented!()
     }
 
     fn fields(&self) -> Option<Vec<&dyn Mp4Box>> {
@@ -150,24 +146,30 @@ impl Mp4Box for Track {
 }
 
 impl Mp4Box for EditLists {
-    fn parse(data: &[u8], start: usize, level: u8) -> Result<Self, Error> {
-        let header = Header::new(data, start)?;
+    fn parse<R: Read + Seek>(reader: &mut R, start: u64, level: u8) -> Result<Self, Error> {
+        let header = Header::new(reader, start)?;
+        let len = header.size as u64;
         let mut edit_list = EditLists {
             header,
             level,
             ..Default::default()
         };
-        let mut index = 8; // skip the first 8 bytes that are Movie headers
+        let mut index = start + 8; // skip the first 8 bytes that are headers
 
-        while index < data.len() {
+        while index < len {
             // the first 8 bytes includes the atom size and its name
             // The size is the entire size of the box, including the size and type header, fields, and all contained boxes.
-            let size = BigEndian::read_u32(&data[index..index + 4]) as usize;
-            let name = std::str::from_utf8(&data[index + 4..index + 8])?;
+            let mut size = vec![0u8; 4];
+            let mut name = vec![0u8; 4];
+            reader.seek(SeekFrom::Start(index as u64))?;
+            reader.read_exact(&mut size)?;
+            reader.read_exact(&mut name)?;
+            let size = BigEndian::read_u32(&size) as u64;
+            let name = std::str::from_utf8(&name)?;
 
             if name == "elst" {
                 let b = Box::new(InnerAtom::parse(
-                    &data[index..index + size],
+                    reader,
                     index + start,
                     level + 1,
                 )?) as Box<dyn Mp4Box>;
@@ -179,12 +181,8 @@ impl Mp4Box for EditLists {
         Ok(edit_list)
     }
 
-    fn start(&self) -> usize {
+    fn start(&self) -> u64 {
         self.header.start
-    }
-
-    fn end(&self) -> usize {
-        self.header.start + self.header.size
     }
 
     fn size(&self) -> usize {
@@ -193,10 +191,6 @@ impl Mp4Box for EditLists {
 
     fn name(&self) -> &str {
         self.header.name.as_ref()
-    }
-
-    fn read(&self) -> Result<Vec<u8>, Error> {
-        unimplemented!()
     }
 
     fn fields(&self) -> Option<Vec<&dyn Mp4Box>> {

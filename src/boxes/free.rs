@@ -6,6 +6,7 @@
 use crate::boxes::Mp4Box;
 use crate::Error;
 use crate::Header;
+use std::io::{Read, Seek};
 
 #[derive(Debug)]
 pub struct Free {
@@ -14,17 +15,13 @@ pub struct Free {
 }
 
 impl Mp4Box for Free {
-    fn parse(data: &[u8], start: usize, level: u8) -> Result<Self, Error> {
-        let header = Header::new(data, start)?;
+    fn parse<R: Read + Seek>(reader: &mut R, start: u64, level: u8) -> Result<Self, Error> {
+        let header = Header::new(reader, start)?;
         Ok(Free { header, level })
     }
 
-    fn start(&self) -> usize {
+    fn start(&self) -> u64 {
         self.header.start
-    }
-
-    fn end(&self) -> usize {
-        self.header.start + self.header.size
     }
 
     fn size(&self) -> usize {
@@ -33,10 +30,6 @@ impl Mp4Box for Free {
 
     fn name(&self) -> &str {
         self.header.name.as_ref()
-    }
-
-    fn read(&self) -> Result<Vec<u8>, Error> {
-        unimplemented!()
     }
 
     fn fields(&self) -> Option<Vec<&dyn Mp4Box>> {

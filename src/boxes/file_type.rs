@@ -6,30 +6,25 @@
 use crate::boxes::Mp4Box;
 use crate::Error;
 use crate::Header;
+use std::io::{Read, Seek};
 
 #[derive(Debug)]
 pub struct FileType {
     header: Header,
-    data: Vec<u8>,
     level: u8,
 }
 
 impl Mp4Box for FileType {
-    fn parse(data: &[u8], start: usize, level: u8) -> Result<Self, Error> {
-        let header = Header::new(data, start)?;
+    fn parse<R: Read + Seek>(reader: &mut R, start: u64, level: u8) -> Result<Self, Error> {
+        let header = Header::new(reader, start)?;
         Ok(FileType {
             header,
-            data: data.to_vec(),
             level,
         })
     }
 
-    fn start(&self) -> usize {
+    fn start(&self) -> u64 {
         self.header.start
-    }
-
-    fn end(&self) -> usize {
-        self.header.start + self.header.size
     }
 
     fn size(&self) -> usize {
@@ -40,9 +35,6 @@ impl Mp4Box for FileType {
         self.header.name.as_ref()
     }
 
-    fn read(&self) -> Result<Vec<u8>, Error> {
-        Ok(self.data.to_vec())
-    }
 
     fn fields(&self) -> Option<Vec<&dyn Mp4Box>> {
         None
