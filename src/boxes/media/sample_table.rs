@@ -7,6 +7,7 @@ use crate::boxes::{InnerAtom, Mp4Box};
 use crate::error::Error;
 use crate::Header;
 use byteorder::{BigEndian, ByteOrder};
+use std::io::{Read, Seek, SeekFrom};
 
 #[derive(Debug, Default)]
 pub struct SampleTable {
@@ -98,103 +99,105 @@ impl SampleTable {
 }
 
 impl Mp4Box for SampleTable {
-    fn parse(data: &[u8], start: usize, level: u8) -> Result<Self, Error>
-    where
-        Self: Sized,
-    {
-        let header = Header::new(data, start)?;
+    fn parse<R: Read + Seek>(reader: &mut R, start: u64, level: u8) -> Result<Self, Error> {
+        let header = Header::new(reader, start)?;
+        let len = header.size as u64;
         let mut sample_table = SampleTable {
             header,
             level,
             ..Default::default()
         };
 
-        let mut index = 8; // skip the first 8 bytes that are Movie headers
+        let mut index = start + 8; // skip the first 8 bytes that are headers
 
-        while index < data.len() {
+        while index < len {
             // the first 8 bytes includes the atom size and its name
             // The size is the entire size of the box, including the size and type header, fields, and all contained boxes.
-            let size = BigEndian::read_u32(&data[index..index + 4]) as usize;
-            let name = std::str::from_utf8(&data[index + 4..index + 8])?;
-            // let name = AtomName::from(name);
+            let mut size = vec![0u8; 4];
+            let mut name = vec![0u8; 4];
+            reader.seek(SeekFrom::Start(index as u64))?;
+            reader.read_exact(&mut size)?;
+            reader.read_exact(&mut name)?;
+            let size = BigEndian::read_u32(&size) as u64;
+            let name = std::str::from_utf8(&name)?;
 
             match name {
                 "stsd" => {
                     let b = Box::new(InnerAtom::parse(
-                        &data[index..index + size],
-                        index + start,
+                        reader,
+                        index,
                         level + 1,
                     )?) as Box<dyn Mp4Box>;
                     sample_table.stsd = Some(b);
                 }
                 "stts" => {
                     let b = Box::new(InnerAtom::parse(
-                        &data[index..index + size],
-                        index + start,
+                        reader,
+                        index,
                         level + 1,
                     )?) as Box<dyn Mp4Box>;
                     sample_table.stts = Some(b);
                 }
                 "ctts" => {
                     let b = Box::new(InnerAtom::parse(
-                        &data[index..index + size],
-                        index + start,
+                        reader,
+                        index,
                         level + 1,
                     )?) as Box<dyn Mp4Box>;
                     sample_table.ctts = Some(b);
                 }
                 "stss" => {
                     let b = Box::new(InnerAtom::parse(
-                        &data[index..index + size],
-                        index + start,
+                        reader,
+                        index,
                         level + 1,
                     )?) as Box<dyn Mp4Box>;
                     sample_table.stss = Some(b);
                 }
                 "sdtp" => {
                     let b = Box::new(InnerAtom::parse(
-                        &data[index..index + size],
-                        index + start,
+                        reader,
+                        index,
                         level + 1,
                     )?) as Box<dyn Mp4Box>;
                     sample_table.sdtp = Some(b);
                 }
                 "stsc" => {
                     let b = Box::new(InnerAtom::parse(
-                        &data[index..index + size],
-                        index + start,
+                        reader,
+                        index,
                         level + 1,
                     )?) as Box<dyn Mp4Box>;
                     sample_table.stsc = Some(b);
                 }
                 "stsz" => {
                     let b = Box::new(InnerAtom::parse(
-                        &data[index..index + size],
-                        index + start,
+                        reader,
+                        index,
                         level + 1,
                     )?) as Box<dyn Mp4Box>;
                     sample_table.stsz = Some(b);
                 }
                 "stco" => {
                     let b = Box::new(InnerAtom::parse(
-                        &data[index..index + size],
-                        index + start,
+                        reader,
+                        index,
                         level + 1,
                     )?) as Box<dyn Mp4Box>;
                     sample_table.stco = Some(b);
                 }
                 "sgpd" => {
                     let b = Box::new(InnerAtom::parse(
-                        &data[index..index + size],
-                        index + start,
+                        reader,
+                        index,
                         level + 1,
                     )?) as Box<dyn Mp4Box>;
                     sample_table.sgpd = Some(b);
                 }
                 "sbgp" => {
                     let b = Box::new(InnerAtom::parse(
-                        &data[index..index + size],
-                        index + start,
+                        reader,
+                        index,
                         level + 1,
                     )?) as Box<dyn Mp4Box>;
                     sample_table.sbgp = Some(b);
@@ -209,12 +212,8 @@ impl Mp4Box for SampleTable {
         Ok(sample_table)
     }
 
-    fn start(&self) -> usize {
+    fn start(&self) -> u64 {
         self.header.start
-    }
-
-    fn end(&self) -> usize {
-        self.header.start + self.header.size
     }
 
     fn size(&self) -> usize {
@@ -223,10 +222,6 @@ impl Mp4Box for SampleTable {
 
     fn name(&self) -> &str {
         self.header.name.as_ref()
-    }
-
-    fn read(&self) -> Result<Vec<u8>, Error> {
-        unimplemented!()
     }
 
     fn fields(&self) -> Option<Vec<&dyn Mp4Box>> {

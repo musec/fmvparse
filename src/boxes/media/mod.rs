@@ -13,6 +13,7 @@ use crate::boxes::{AtomName, InnerAtom, Mp4Box};
 use crate::error::Error;
 use crate::Header;
 use byteorder::{BigEndian, ByteOrder};
+use std::io::{Read, Seek, SeekFrom};
 
 #[derive(Default)]
 pub struct Media {
@@ -47,47 +48,50 @@ impl Media {
 }
 
 impl Mp4Box for Media {
-    fn parse(data: &[u8], start: usize, level: u8) -> Result<Self, Error>
-    where
-        Self: Sized,
-    {
-        let header = Header::new(data, start)?;
+    fn parse<R: Read + Seek>(reader: &mut R, start: u64, level: u8) -> Result<Self, Error> {
+        let header = Header::new(reader, start)?;
+        let len = header.size as u64;
         let mut media = Media {
             header,
             level,
             ..Default::default()
         };
 
-        let mut index = 8; // skip the first 8 bytes that are Movie headers
+        let mut index = start + 8; // skip the first 8 bytes that are headers
 
-        while index < data.len() {
+        while index < len {
             // the first 8 bytes includes the atom size and its name
             // The size is the entire size of the box, including the size and type header, fields, and all contained boxes.
-            let size = BigEndian::read_u32(&data[index..index + 4]) as usize;
-            let name = std::str::from_utf8(&data[index + 4..index + 8])?;
+            let mut size = vec![0u8; 4];
+            let mut name = vec![0u8; 4];
+            reader.seek(SeekFrom::Start(index as u64))?;
+            reader.read_exact(&mut size)?;
+            reader.read_exact(&mut name)?;
+            let size = BigEndian::read_u32(&size) as u64;
+            let name = std::str::from_utf8(&name)?;
             let name = AtomName::from(name);
 
             match name {
                 AtomName::MediaInfo => {
                     let b = Box::new(MediaInfo::parse(
-                        &data[index..index + size],
-                        index + start,
+                        reader,
+                        index,
                         level + 1,
                     )?) as Box<dyn Mp4Box>;
                     media.minf = Some(b);
                 }
                 AtomName::MediaHeader => {
                     let b = Box::new(InnerAtom::parse(
-                        &data[index..index + size],
-                        index + start,
+                        reader,
+                        index,
                         level + 1,
                     )?) as Box<dyn Mp4Box>;
                     media.mdhd = Some(b);
                 }
                 AtomName::MediaHandler => {
                     let b = Box::new(InnerAtom::parse(
-                        &data[index..index + size],
-                        index + start,
+                        reader,
+                        index,
                         level + 1,
                     )?) as Box<dyn Mp4Box>;
                     media.hdlr = Some(b);
@@ -100,12 +104,8 @@ impl Mp4Box for Media {
         Ok(media)
     }
 
-    fn start(&self) -> usize {
+    fn start(&self) -> u64 {
         self.header.start
-    }
-
-    fn end(&self) -> usize {
-        self.header.start + self.header.size
     }
 
     fn size(&self) -> usize {
@@ -114,10 +114,6 @@ impl Mp4Box for Media {
 
     fn name(&self) -> &str {
         self.header.name.as_ref()
-    }
-
-    fn read(&self) -> Result<Vec<u8>, Error> {
-        unimplemented!()
     }
 
     fn fields(&self) -> Option<Vec<&dyn Mp4Box>> {

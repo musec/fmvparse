@@ -5,18 +5,17 @@
 
 use crate::Error;
 use downcast_rs::Downcast;
+use std::io::{Read, Seek};
 
 pub trait Mp4Box: Downcast {
     /// Read the atom from the data and parse it
-    fn parse(data: &[u8], start: usize, level: u8) -> Result<Self, Error>
+    fn parse<R>(reader: &mut R, start: u64, level: u8) -> Result<Self, Error>
     where
-        Self: Sized;
+        Self: Sized,
+        R: Read + Seek;
 
     /// The start address of the box
-    fn start(&self) -> usize;
-
-    /// The end address of the box
-    fn end(&self) -> usize;
+    fn start(&self) -> u64;
 
     /// The box size in bytes
     fn size(&self) -> usize;
@@ -24,8 +23,8 @@ pub trait Mp4Box: Downcast {
     /// The box name
     fn name(&self) -> &str;
 
-    /// Read the box content
-    fn read(&self) -> Result<Vec<u8>, Error>;
+    // /// Read the box content
+    // fn read(&self, reader: &mut File) -> Result<Vec<u8>, Error>;
 
     /// Get the internal boxes of this box
     fn fields(&self) -> Option<Vec<&dyn Mp4Box>>;
