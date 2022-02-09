@@ -31,6 +31,12 @@ pub trait Mp4Box: Downcast {
 
     /// The box level
     fn level(&self) -> u8;
+<<<<<<< HEAD
+=======
+
+    /// Print offsets of stco boxes
+    fn offsets(&self) -> Option<Vec<u64>>;
+>>>>>>> cce9eb5 (Added STCO atom parsing. Parsing works fine but the indentation problem has to be fixed.)
 }
 
 impl_downcast!(Mp4Box);
@@ -55,6 +61,20 @@ impl std::fmt::Debug for dyn Mp4Box {
                 write!(f, "{:?}", internal)?;
             }
         }
+<<<<<<< HEAD
+=======
+
+        let off_print = self.offsets();
+        let indent = self.level();
+
+        if let Some(off_print) = off_print {
+            // add indent based on the level
+            for _ in 0..indent - 1 {
+                write!(f, "\t")?;
+            }
+            write!(f, "{:?}", off_print)?;
+        }
+>>>>>>> cce9eb5 (Added STCO atom parsing. Parsing works fine but the indentation problem has to be fixed.)
         Ok(())
     }
 }

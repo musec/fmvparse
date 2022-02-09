@@ -82,6 +82,7 @@ impl Mp4Box for Track {
 
             match name {
                 AtomName::EditLists => {
+<<<<<<< HEAD
                     let b = Box::new(EditLists::parse(
                         reader,
                         index,
@@ -103,6 +104,19 @@ impl Mp4Box for Track {
                         index,
                         level + 1,
                     )?) as Box<dyn Mp4Box>;
+=======
+                    let b =
+                        Box::new(EditLists::parse(reader, index, level + 1)?) as Box<dyn Mp4Box>;
+                    track.edts = Some(b);
+                }
+                AtomName::Media => {
+                    let b = Box::new(Media::parse(reader, index, level + 1)?) as Box<dyn Mp4Box>;
+                    track.mdia = Some(b);
+                }
+                AtomName::TrackHeader => {
+                    let b =
+                        Box::new(InnerAtom::parse(reader, index, level + 1)?) as Box<dyn Mp4Box>;
+>>>>>>> cce9eb5 (Added STCO atom parsing. Parsing works fine but the indentation problem has to be fixed.)
                     track.tkhd = Some(b);
                 }
                 _ => {}
@@ -140,6 +154,13 @@ impl Mp4Box for Track {
         Some(fields)
     }
 
+<<<<<<< HEAD
+=======
+    fn offsets(&self) -> Option<Vec<u64>> {
+        None
+    }
+
+>>>>>>> cce9eb5 (Added STCO atom parsing. Parsing works fine but the indentation problem has to be fixed.)
     fn level(&self) -> u8 {
         self.level
     }
@@ -168,11 +189,16 @@ impl Mp4Box for EditLists {
             let name = std::str::from_utf8(&name)?;
 
             if name == "elst" {
+<<<<<<< HEAD
                 let b = Box::new(InnerAtom::parse(
                     reader,
                     index + start,
                     level + 1,
                 )?) as Box<dyn Mp4Box>;
+=======
+                let b = Box::new(InnerAtom::parse(reader, index + start, level + 1)?)
+                    as Box<dyn Mp4Box>;
+>>>>>>> cce9eb5 (Added STCO atom parsing. Parsing works fine but the indentation problem has to be fixed.)
                 edit_list.elst = Some(b);
             }
             index += size;
@@ -202,6 +228,13 @@ impl Mp4Box for EditLists {
         Some(fields)
     }
 
+<<<<<<< HEAD
+=======
+    fn offsets(&self) -> Option<Vec<u64>> {
+        None
+    }
+
+>>>>>>> cce9eb5 (Added STCO atom parsing. Parsing works fine but the indentation problem has to be fixed.)
     fn level(&self) -> u8 {
         self.level
     }

@@ -42,6 +42,13 @@ impl Mp4Box for InnerAtom {
         None
     }
 
+<<<<<<< HEAD
+=======
+    fn offsets(&self) -> Option<Vec<u64>> {
+        None
+    }
+
+>>>>>>> cce9eb5 (Added STCO atom parsing. Parsing works fine but the indentation problem has to be fixed.)
     fn level(&self) -> u8 {
         self.level
     }

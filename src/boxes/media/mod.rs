@@ -5,9 +5,17 @@
 
 mod media_info;
 mod sample_table;
+<<<<<<< HEAD
 
 pub use media_info::MediaInfo;
 pub use sample_table::SampleTable;
+=======
+mod stco;
+
+pub use media_info::MediaInfo;
+pub use sample_table::SampleTable;
+pub use stco::ChunkOffsetBox;
+>>>>>>> cce9eb5 (Added STCO atom parsing. Parsing works fine but the indentation problem has to be fixed.)
 
 use crate::boxes::{AtomName, InnerAtom, Mp4Box};
 use crate::error::Error;
@@ -73,6 +81,7 @@ impl Mp4Box for Media {
 
             match name {
                 AtomName::MediaInfo => {
+<<<<<<< HEAD
                     let b = Box::new(MediaInfo::parse(
                         reader,
                         index,
@@ -94,6 +103,20 @@ impl Mp4Box for Media {
                         index,
                         level + 1,
                     )?) as Box<dyn Mp4Box>;
+=======
+                    let b =
+                        Box::new(MediaInfo::parse(reader, index, level + 1)?) as Box<dyn Mp4Box>;
+                    media.minf = Some(b);
+                }
+                AtomName::MediaHeader => {
+                    let b =
+                        Box::new(InnerAtom::parse(reader, index, level + 1)?) as Box<dyn Mp4Box>;
+                    media.mdhd = Some(b);
+                }
+                AtomName::MediaHandler => {
+                    let b =
+                        Box::new(InnerAtom::parse(reader, index, level + 1)?) as Box<dyn Mp4Box>;
+>>>>>>> cce9eb5 (Added STCO atom parsing. Parsing works fine but the indentation problem has to be fixed.)
                     media.hdlr = Some(b);
                 }
                 _ => {}
@@ -131,6 +154,13 @@ impl Mp4Box for Media {
         Some(fields)
     }
 
+<<<<<<< HEAD
+=======
+    fn offsets(&self) -> Option<Vec<u64>> {
+        None
+    }
+
+>>>>>>> cce9eb5 (Added STCO atom parsing. Parsing works fine but the indentation problem has to be fixed.)
     fn level(&self) -> u8 {
         self.level
     }
