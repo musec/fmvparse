@@ -4,10 +4,7 @@
  * All rights reserved.
  */
 
-<<<<<<< HEAD
-=======
 use crate::boxes::media::ChunkOffsetBox;
->>>>>>> cce9eb5 (Added STCO atom parsing. Parsing works fine but the indentation problem has to be fixed.)
 use crate::boxes::{InnerAtom, Mp4Box};
 use crate::error::Error;
 use crate::Header;
@@ -128,85 +125,6 @@ impl Mp4Box for SampleTable {
 
             match name {
                 "stsd" => {
-<<<<<<< HEAD
-                    let b = Box::new(InnerAtom::parse(
-                        reader,
-                        index,
-                        level + 1,
-                    )?) as Box<dyn Mp4Box>;
-                    sample_table.stsd = Some(b);
-                }
-                "stts" => {
-                    let b = Box::new(InnerAtom::parse(
-                        reader,
-                        index,
-                        level + 1,
-                    )?) as Box<dyn Mp4Box>;
-                    sample_table.stts = Some(b);
-                }
-                "ctts" => {
-                    let b = Box::new(InnerAtom::parse(
-                        reader,
-                        index,
-                        level + 1,
-                    )?) as Box<dyn Mp4Box>;
-                    sample_table.ctts = Some(b);
-                }
-                "stss" => {
-                    let b = Box::new(InnerAtom::parse(
-                        reader,
-                        index,
-                        level + 1,
-                    )?) as Box<dyn Mp4Box>;
-                    sample_table.stss = Some(b);
-                }
-                "sdtp" => {
-                    let b = Box::new(InnerAtom::parse(
-                        reader,
-                        index,
-                        level + 1,
-                    )?) as Box<dyn Mp4Box>;
-                    sample_table.sdtp = Some(b);
-                }
-                "stsc" => {
-                    let b = Box::new(InnerAtom::parse(
-                        reader,
-                        index,
-                        level + 1,
-                    )?) as Box<dyn Mp4Box>;
-                    sample_table.stsc = Some(b);
-                }
-                "stsz" => {
-                    let b = Box::new(InnerAtom::parse(
-                        reader,
-                        index,
-                        level + 1,
-                    )?) as Box<dyn Mp4Box>;
-                    sample_table.stsz = Some(b);
-                }
-                "stco" => {
-                    let b = Box::new(InnerAtom::parse(
-                        reader,
-                        index,
-                        level + 1,
-                    )?) as Box<dyn Mp4Box>;
-                    sample_table.stco = Some(b);
-                }
-                "sgpd" => {
-                    let b = Box::new(InnerAtom::parse(
-                        reader,
-                        index,
-                        level + 1,
-                    )?) as Box<dyn Mp4Box>;
-                    sample_table.sgpd = Some(b);
-                }
-                "sbgp" => {
-                    let b = Box::new(InnerAtom::parse(
-                        reader,
-                        index,
-                        level + 1,
-                    )?) as Box<dyn Mp4Box>;
-=======
                     let b =
                         Box::new(InnerAtom::parse(reader, index, level + 1)?) as Box<dyn Mp4Box>;
                     sample_table.stsd = Some(b);
@@ -254,7 +172,6 @@ impl Mp4Box for SampleTable {
                 "sbgp" => {
                     let b =
                         Box::new(InnerAtom::parse(reader, index, level + 1)?) as Box<dyn Mp4Box>;
->>>>>>> cce9eb5 (Added STCO atom parsing. Parsing works fine but the indentation problem has to be fixed.)
                     sample_table.sbgp = Some(b);
                 }
 
@@ -319,13 +236,10 @@ impl Mp4Box for SampleTable {
         Some(fields)
     }
 
-<<<<<<< HEAD
-=======
     fn offsets(&self) -> Option<Vec<u64>> {
         None
     }
 
->>>>>>> cce9eb5 (Added STCO atom parsing. Parsing works fine but the indentation problem has to be fixed.)
     fn level(&self) -> u8 {
         self.level
     }

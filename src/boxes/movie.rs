@@ -81,29 +81,6 @@ impl Mp4Box for Movie {
 
             match name {
                 AtomName::MovieHeader => {
-<<<<<<< HEAD
-                    let b = Box::new(InnerAtom::parse(
-                        reader,
-                        index,
-                        level + 1,
-                    )?) as Box<dyn Mp4Box>;
-                    movie.mvhd = Some(b);
-                }
-                AtomName::Track => {
-                    let b = Box::new(Track::parse(
-                        reader,
-                        index,
-                        level + 1,
-                    )?) as Box<dyn Mp4Box>;
-                    movie.tracks.push(b);
-                }
-                AtomName::Userdata => {
-                    let b = Box::new(InnerAtom::parse(
-                        reader,
-                        index,
-                        level + 1,
-                    )?) as Box<dyn Mp4Box>;
-=======
                     let b =
                         Box::new(InnerAtom::parse(reader, index, level + 1)?) as Box<dyn Mp4Box>;
                     movie.mvhd = Some(b);
@@ -111,7 +88,6 @@ impl Mp4Box for Movie {
                 AtomName::Userdata => {
                     let b =
                         Box::new(InnerAtom::parse(reader, index, level + 1)?) as Box<dyn Mp4Box>;
->>>>>>> cce9eb5 (Added STCO atom parsing. Parsing works fine but the indentation problem has to be fixed.)
                     movie.udta = Some(b);
                 }
                 AtomName::Track => {
@@ -160,13 +136,10 @@ impl Mp4Box for Movie {
         Some(fields)
     }
 
-<<<<<<< HEAD
-=======
     fn offsets(&self) -> Option<Vec<u64>> {
         None
     }
 
->>>>>>> cce9eb5 (Added STCO atom parsing. Parsing works fine but the indentation problem has to be fixed.)
     fn level(&self) -> u8 {
         self.level
     }
