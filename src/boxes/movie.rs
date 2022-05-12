@@ -1,5 +1,6 @@
 /*
  * © 2022 Arastoo Bozorgi
+ * © 2022 Samir Dharar
  * All rights reserved.
  */
 
@@ -12,8 +13,8 @@ use std::io::{Read, Seek, SeekFrom};
 #[derive(Default)]
 pub struct Movie {
     mvhd: Option<Box<dyn Mp4Box>>, // movie header
-    tracks: Vec<Box<dyn Mp4Box>>,  // movie tracks
     udta: Option<Box<dyn Mp4Box>>, // user data
+    tracks: Vec<Box<dyn Mp4Box>>,  // movie tracks
     header: Header,
     level: u8,
 }
@@ -59,11 +60,14 @@ impl Mp4Box for Movie {
             tracks: vec![],
             ..Default::default()
         };
-        let mut index = start + 8; // skip the first 8 bytes that are headers
 
-        while index < len {
+        let mut index = start + 8; // skip the first 8 bytes that are headers
+                                   // println!("index: {}, len: {}", index, len);
+
+        while index < start + len {
             // the first 8 bytes includes the atom size and its name
             // The size is the entire size of the box, including the size and type header, fields, and all contained boxes.
+
             let mut size = vec![0u8; 4];
             let mut name = vec![0u8; 4];
             reader.seek(SeekFrom::Start(index as u64))?;
@@ -71,7 +75,9 @@ impl Mp4Box for Movie {
             reader.read_exact(&mut name)?;
             let size = BigEndian::read_u32(&size) as u64;
             let name = std::str::from_utf8(&name)?;
+
             let name = AtomName::from(name);
+            // println!("Name: {:?}, Size: {:?} and Index: {:?}", name, size, index);
 
             match name {
                 AtomName::MovieHeader => {
@@ -102,16 +108,17 @@ impl Mp4Box for Movie {
                         Box::new(InnerAtom::parse(reader, index, level + 1)?) as Box<dyn Mp4Box>;
                     movie.mvhd = Some(b);
                 }
-                AtomName::Track => {
-                    let b = Box::new(Track::parse(reader, index, level + 1)?) as Box<dyn Mp4Box>;
-                    movie.tracks.push(b);
-                }
                 AtomName::Userdata => {
                     let b =
                         Box::new(InnerAtom::parse(reader, index, level + 1)?) as Box<dyn Mp4Box>;
 >>>>>>> cce9eb5 (Added STCO atom parsing. Parsing works fine but the indentation problem has to be fixed.)
                     movie.udta = Some(b);
                 }
+                AtomName::Track => {
+                    let b = Box::new(Track::parse(reader, index, level + 1)?) as Box<dyn Mp4Box>;
+                    movie.tracks.push(b);
+                }
+
                 _ => {}
             }
             index += size;
@@ -122,6 +129,10 @@ impl Mp4Box for Movie {
 
     fn start(&self) -> u64 {
         self.header.start
+    }
+
+    fn end(&self) -> u64 {
+        self.header.end
     }
 
     fn size(&self) -> usize {
@@ -138,12 +149,12 @@ impl Mp4Box for Movie {
             fields.push(mvhd.as_ref());
         }
 
-        for track in self.tracks.iter() {
-            fields.push(track.as_ref());
-        }
-
         if let Some(udta) = self.udta.as_ref() {
             fields.push(udta.as_ref());
+        }
+
+        for track in self.tracks.iter() {
+            fields.push(track.as_ref());
         }
 
         Some(fields)

@@ -1,7 +1,12 @@
+/*
+ * © 2022 Samir Dharar
+ * All rights reserved.
+ */
+
 use crate::boxes::Mp4Box;
 use crate::error::Error;
 use crate::Header;
-use std::io::{Read, Seek};
+use std::io::{Read, Seek, SeekFrom};
 extern crate byteorder;
 use byteorder::ReadBytesExt;
 
@@ -18,10 +23,15 @@ pub struct ChunkOffsetBox {
 impl Mp4Box for ChunkOffsetBox {
     fn parse<R: Read + Seek>(reader: &mut R, start: u64, level: u8) -> Result<Self, Error> {
         let header = Header::new(reader, start)?;
-        let (_, _) = read_fullbox_extra(reader)?;
-        let offset_count = reader.read_u32::<byteorder::BigEndian>()?;
+
+        // Skipping 4 bytes of:-
+        // VERSION: A 1-byte specification of the version of this chunk offset atom
+        // FLAGS: A 3-byte space for chunk offset flags
+        reader.seek(SeekFrom::Current(4))?;
+
+        let number_of_entries = reader.read_u32::<byteorder::BigEndian>()?; // 4 bytes
         let mut offsets: Vec<u64> = Vec::new();
-        for _ in 0..offset_count {
+        for _ in 0..number_of_entries {
             offsets.push(reader.read_u32::<byteorder::BigEndian>()? as u64);
         }
 
@@ -33,6 +43,10 @@ impl Mp4Box for ChunkOffsetBox {
     }
     fn start(&self) -> u64 {
         self.header.start
+    }
+
+    fn end(&self) -> u64 {
+        self.header.end
     }
 
     fn size(&self) -> usize {
@@ -54,15 +68,4 @@ impl Mp4Box for ChunkOffsetBox {
     fn level(&self) -> u8 {
         self.level
     }
-}
-
-fn read_fullbox_extra<R: Read + Seek>(reader: &mut R) -> Result<(u8, u32), Error> {
-    let version = reader.read_u8()?;
-    let flags_a = reader.read_u8()?;
-    let flags_b = reader.read_u8()?;
-    let flags_c = reader.read_u8()?;
-    Ok((
-        version,
-        (flags_a as u32) << 16 | (flags_b as u32) << 8 | (flags_c as u32),
-    ))
 }

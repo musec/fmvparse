@@ -1,5 +1,6 @@
 /*
  * © 2022 Arastoo Bozorgi
+ * © 2022 Samir Dharar
  * All rights reserved.
  */
 
@@ -16,6 +17,9 @@ pub trait Mp4Box: Downcast {
 
     /// The start address of the box
     fn start(&self) -> u64;
+
+    /// The end address of the box
+    fn end(&self) -> u64;
 
     /// The box size in bytes
     fn size(&self) -> usize;
@@ -45,10 +49,11 @@ impl std::fmt::Debug for dyn Mp4Box {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(
             f,
-            "{}: {{start address: {}, size: {}}}",
+            "{}: {{size: {}, start address: {}, end address: {}}}",
             self.name(),
+            self.size(),
             self.start(),
-            self.size()
+            self.end(),
         )?;
 
         let internals = self.fields();
@@ -69,10 +74,20 @@ impl std::fmt::Debug for dyn Mp4Box {
 
         if let Some(off_print) = off_print {
             // add indent based on the level
-            for _ in 0..indent - 1 {
+            for _ in 0..indent + 1 {
                 write!(f, "\t")?;
             }
-            write!(f, "{:?}", off_print)?;
+            if off_print.len() < 10 {
+                writeln!(f, "chunk offsets: {:?}", off_print)?;
+            } else {
+                writeln!(
+                    f,
+                    "chunk offsets: {{{:?}, {:?}, {dots}}}",
+                    off_print[0],
+                    off_print[1],
+                    dots = "..."
+                )?;
+            }
         }
 >>>>>>> cce9eb5 (Added STCO atom parsing. Parsing works fine but the indentation problem has to be fixed.)
         Ok(())
@@ -82,9 +97,11 @@ impl std::fmt::Debug for dyn Mp4Box {
 #[derive(Debug)]
 pub enum AtomName {
     FileType,
+    Wide,
     Movie,
     MediaData,
     Free,
+    Skip,
     MovieHeader,
     Track,
     Userdata,
@@ -103,9 +120,11 @@ impl From<&str> for AtomName {
     fn from(name: &str) -> Self {
         match name {
             "ftyp" => AtomName::FileType,
-            "moov" => AtomName::Movie,
+            "wide" => AtomName::Wide,
             "mdat" => AtomName::MediaData,
+            "moov" => AtomName::Movie,
             "free" => AtomName::Free,
+            "skip" => AtomName::Skip,
             "mvhd" => AtomName::MovieHeader,
             "trak" => AtomName::Track,
             "udta" => AtomName::Userdata,
@@ -126,9 +145,11 @@ impl std::convert::From<AtomName> for &str {
     fn from(an: AtomName) -> Self {
         match an {
             AtomName::FileType => "ftyp",
-            AtomName::Movie => "moov",
+            AtomName::Wide => "wide",
             AtomName::MediaData => "mdat",
+            AtomName::Movie => "moov",
             AtomName::Free => "free",
+            AtomName::Skip => "skip",
             AtomName::MovieHeader => "mvhd",
             AtomName::Track => "trak",
             AtomName::Userdata => "udata",

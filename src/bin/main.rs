@@ -9,7 +9,7 @@ use structopt::StructOpt;
 #[derive(Debug, StructOpt)]
 #[structopt(
     name = "fmv-parser",
-    about = "Parse fmv files and extract the internal structures."
+    about = "Parse Mp4 files and extract the internal structures."
 )]
 struct Opt {
     #[structopt(short, long, env = "FMV_FILE")]

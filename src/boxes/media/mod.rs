@@ -1,5 +1,6 @@
 /*
  * © 2022 Arastoo Bozorgi
+ * © 2022 Samir Dharar
  * All rights reserved.
  */
 
@@ -67,7 +68,7 @@ impl Mp4Box for Media {
 
         let mut index = start + 8; // skip the first 8 bytes that are headers
 
-        while index < len {
+        while index < start + len {
             // the first 8 bytes includes the atom size and its name
             // The size is the entire size of the box, including the size and type header, fields, and all contained boxes.
             let mut size = vec![0u8; 4];
@@ -129,6 +130,10 @@ impl Mp4Box for Media {
 
     fn start(&self) -> u64 {
         self.header.start
+    }
+
+    fn end(&self) -> u64 {
+        self.header.end
     }
 
     fn size(&self) -> usize {

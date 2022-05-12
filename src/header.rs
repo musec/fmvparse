@@ -5,13 +5,14 @@
 
 use crate::error::Error;
 use byteorder::{BigEndian, ByteOrder};
-use std::io::{Seek, SeekFrom, Read};
+use std::io::{Read, Seek, SeekFrom};
 
 #[derive(Debug, Default)]
 pub struct Header {
     pub name: String,
     pub size: usize,
     pub start: u64,
+    pub end: u64,
 }
 
 impl Header {
@@ -26,6 +27,13 @@ impl Header {
         let size = BigEndian::read_u32(&size) as usize;
         let name = std::str::from_utf8(&name)?.to_string();
 
-        Ok(Self { name, size, start })
+        let end = start + size as u64;
+
+        Ok(Self {
+            name,
+            size,
+            start,
+            end,
+        })
     }
 }

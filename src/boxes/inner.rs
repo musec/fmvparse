@@ -1,5 +1,6 @@
 /*
  * © 2022 Arastoo Bozorgi
+ * © 2022 Samir Dharar
  * All rights reserved.
  */
 
@@ -28,6 +29,10 @@ impl Mp4Box for InnerAtom {
 
     fn start(&self) -> u64 {
         self.header.start
+    }
+
+    fn end(&self) -> u64 {
+        self.header.end
     }
 
     fn size(&self) -> usize {
