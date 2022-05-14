@@ -108,10 +108,6 @@ impl Mp4Box for Track {
         self.header.start
     }
 
-    fn end(&self) -> u64 {
-        self.header.end
-    }
-
     fn size(&self) -> usize {
         self.header.size
     }
@@ -135,7 +131,7 @@ impl Mp4Box for Track {
         Some(fields)
     }
 
-    fn offsets(&self) -> Option<Vec<u64>> {
+    fn getmetadata(&self) -> Option<Vec<u64>> {
         None
     }
 
@@ -181,10 +177,6 @@ impl Mp4Box for EditLists {
         self.header.start
     }
 
-    fn end(&self) -> u64 {
-        self.header.end
-    }
-
     fn size(&self) -> usize {
         self.header.size
     }
@@ -202,7 +194,7 @@ impl Mp4Box for EditLists {
         Some(fields)
     }
 
-    fn offsets(&self) -> Option<Vec<u64>> {
+    fn getmetadata(&self) -> Option<Vec<u64>> {
         None
     }
 

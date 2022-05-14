@@ -62,7 +62,6 @@ impl Mp4Box for Movie {
         };
 
         let mut index = start + 8; // skip the first 8 bytes that are headers
-                                   // println!("index: {}, len: {}", index, len);
 
         while index < start + len {
             // the first 8 bytes includes the atom size and its name
@@ -77,7 +76,6 @@ impl Mp4Box for Movie {
             let name = std::str::from_utf8(&name)?;
 
             let name = AtomName::from(name);
-            // println!("Name: {:?}, Size: {:?} and Index: {:?}", name, size, index);
 
             match name {
                 AtomName::MovieHeader => {
@@ -107,10 +105,6 @@ impl Mp4Box for Movie {
         self.header.start
     }
 
-    fn end(&self) -> u64 {
-        self.header.end
-    }
-
     fn size(&self) -> usize {
         self.header.size
     }
@@ -136,7 +130,7 @@ impl Mp4Box for Movie {
         Some(fields)
     }
 
-    fn offsets(&self) -> Option<Vec<u64>> {
+    fn getmetadata(&self) -> Option<Vec<u64>> {
         None
     }
 

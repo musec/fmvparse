@@ -18,17 +18,11 @@ pub trait Mp4Box: Downcast {
     /// The start address of the box
     fn start(&self) -> u64;
 
-    /// The end address of the box
-    fn end(&self) -> u64;
-
     /// The box size in bytes
     fn size(&self) -> usize;
 
     /// The box name
     fn name(&self) -> &str;
-
-    // /// Read the box content
-    // fn read(&self, reader: &mut File) -> Result<Vec<u8>, Error>;
 
     /// Get the internal boxes of this box
     fn fields(&self) -> Option<Vec<&dyn Mp4Box>>;
@@ -36,8 +30,8 @@ pub trait Mp4Box: Downcast {
     /// The box level
     fn level(&self) -> u8;
 
-    /// Print offsets of stco boxes
-    fn offsets(&self) -> Option<Vec<u64>>;
+    /// Print base metadata of boxes
+    fn getmetadata(&self) -> Option<Vec<u64>>;
 }
 
 impl_downcast!(Mp4Box);
@@ -50,7 +44,7 @@ impl std::fmt::Debug for dyn Mp4Box {
             self.name(),
             self.size(),
             self.start(),
-            self.end(),
+            self.start() + self.size() as u64,
         )?;
 
         let internals = self.fields();
@@ -64,22 +58,22 @@ impl std::fmt::Debug for dyn Mp4Box {
             }
         }
 
-        let off_print = self.offsets();
+        let meta_print = self.getmetadata();
         let indent = self.level();
 
-        if let Some(off_print) = off_print {
+        if let Some(meta_print) = meta_print {
             // add indent based on the level
             for _ in 0..indent + 1 {
                 write!(f, "\t")?;
             }
-            if off_print.len() < 10 {
-                writeln!(f, "chunk offsets: {:?}", off_print)?;
+            if meta_print.len() < 10 {
+                writeln!(f, "{:?}", meta_print)?;
             } else {
                 writeln!(
                     f,
-                    "chunk offsets: {{{:?}, {:?}, {dots}}}",
-                    off_print[0],
-                    off_print[1],
+                    "{{{:?}, {:?}, {dots}}}",
+                    meta_print[0],
+                    meta_print[1],
                     dots = "..."
                 )?;
             }

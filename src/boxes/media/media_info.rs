@@ -122,10 +122,6 @@ impl Mp4Box for MediaInfo {
         self.header.start
     }
 
-    fn end(&self) -> u64 {
-        self.header.end
-    }
-
     fn size(&self) -> usize {
         self.header.size
     }
@@ -155,7 +151,7 @@ impl Mp4Box for MediaInfo {
         Some(fields)
     }
 
-    fn offsets(&self) -> Option<Vec<u64>> {
+    fn getmetadata(&self) -> Option<Vec<u64>> {
         None
     }
 
