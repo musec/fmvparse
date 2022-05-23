@@ -29,9 +29,6 @@ pub trait Mp4Box: Downcast {
 
     /// The box level
     fn level(&self) -> u8;
-
-    /// Print base metadata of boxes
-    fn getmetadata(&self) -> Option<Vec<u64>>;
 }
 
 impl_downcast!(Mp4Box);
@@ -58,22 +55,20 @@ impl std::fmt::Debug for dyn Mp4Box {
             }
         }
 
-        let meta_print = self.getmetadata();
         let indent = self.level();
-
-        if let Some(meta_print) = meta_print {
-            // add indent based on the level
+        if let Some(foo) = self.downcast_ref::<super::media::ChunkOffsetBox>() {
             for _ in 0..indent + 1 {
                 write!(f, "\t")?;
             }
-            if meta_print.len() < 10 {
-                writeln!(f, "{:?}", meta_print)?;
+            let offset = foo.offsets.to_vec();
+            if offset.len() < 10 {
+                write!(f, "offsets: {:?}", offset)?;
             } else {
                 writeln!(
                     f,
-                    "{{{:?}, {:?}, {dots}}}",
-                    meta_print[0],
-                    meta_print[1],
+                    "offsets:{{{:?}, {:?}, {dots}}}",
+                    offset[0],
+                    offset[1],
                     dots = "..."
                 )?;
             }

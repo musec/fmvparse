@@ -125,10 +125,6 @@ impl Mp4Box for Media {
         Some(fields)
     }
 
-    fn getmetadata(&self) -> Option<Vec<u64>> {
-        None
-    }
-
     fn level(&self) -> u8 {
         self.level
     }

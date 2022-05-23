@@ -43,10 +43,6 @@ impl Mp4Box for InnerAtom {
         None
     }
 
-    fn getmetadata(&self) -> Option<Vec<u64>> {
-        None
-    }
-
     fn level(&self) -> u8 {
         self.level
     }

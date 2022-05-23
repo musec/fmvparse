@@ -131,10 +131,6 @@ impl Mp4Box for Track {
         Some(fields)
     }
 
-    fn getmetadata(&self) -> Option<Vec<u64>> {
-        None
-    }
-
     fn level(&self) -> u8 {
         self.level
     }
@@ -192,10 +188,6 @@ impl Mp4Box for EditLists {
         }
 
         Some(fields)
-    }
-
-    fn getmetadata(&self) -> Option<Vec<u64>> {
-        None
     }
 
     fn level(&self) -> u8 {
