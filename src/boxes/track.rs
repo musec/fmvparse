@@ -1,5 +1,6 @@
 /*
  * © 2022 Arastoo Bozorgi
+ * © 2022 Samir Dharar
  * All rights reserved.
  */
 
@@ -68,7 +69,7 @@ impl Mp4Box for Track {
         };
         let mut index = start + 8; // skip the first 8 bytes that are headers
 
-        while index < len {
+        while index < start + len {
             // the first 8 bytes includes the atom size and its name
             // The size is the entire size of the box, including the size and type header, fields, and all contained boxes.
             let mut size = vec![0u8; 4];
@@ -82,27 +83,17 @@ impl Mp4Box for Track {
 
             match name {
                 AtomName::EditLists => {
-                    let b = Box::new(EditLists::parse(
-                        reader,
-                        index,
-                        level + 1,
-                    )?) as Box<dyn Mp4Box>;
+                    let b =
+                        Box::new(EditLists::parse(reader, index, level + 1)?) as Box<dyn Mp4Box>;
                     track.edts = Some(b);
                 }
                 AtomName::Media => {
-                    let b = Box::new(Media::parse(
-                        reader,
-                        index,
-                        level + 1,
-                    )?) as Box<dyn Mp4Box>;
+                    let b = Box::new(Media::parse(reader, index, level + 1)?) as Box<dyn Mp4Box>;
                     track.mdia = Some(b);
                 }
                 AtomName::TrackHeader => {
-                    let b = Box::new(InnerAtom::parse(
-                        reader,
-                        index,
-                        level + 1,
-                    )?) as Box<dyn Mp4Box>;
+                    let b =
+                        Box::new(InnerAtom::parse(reader, index, level + 1)?) as Box<dyn Mp4Box>;
                     track.tkhd = Some(b);
                 }
                 _ => {}
@@ -168,11 +159,8 @@ impl Mp4Box for EditLists {
             let name = std::str::from_utf8(&name)?;
 
             if name == "elst" {
-                let b = Box::new(InnerAtom::parse(
-                    reader,
-                    index + start,
-                    level + 1,
-                )?) as Box<dyn Mp4Box>;
+                let b = Box::new(InnerAtom::parse(reader, index + start, level + 1)?)
+                    as Box<dyn Mp4Box>;
                 edit_list.elst = Some(b);
             }
             index += size;

@@ -1,5 +1,6 @@
 /*
  * © 2022 Arastoo Bozorgi
+ * © 2022 Samir Dharar
  * All rights reserved.
  */
 
@@ -13,6 +14,8 @@ use std::io::{Read, Seek, SeekFrom};
 #[derive(Default)]
 pub struct MediaInfo {
     vmhd: Option<Box<dyn Mp4Box>>, // video media header, overall information (video track only)
+    smhd: Option<Box<dyn Mp4Box>>, // audio media header
+    gmhd: Option<Box<dyn Mp4Box>>, // base media header
     dinf: Option<Box<dyn Mp4Box>>, // data information box, container
     stbl: Option<Box<dyn Mp4Box>>, // sample table
     header: Header,
@@ -24,6 +27,20 @@ impl MediaInfo {
         match self.vmhd.as_ref() {
             Some(b) => Ok(b.downcast_ref::<InnerAtom>().unwrap()),
             None => Err(Error::BoxNotFound("vmhd".to_string())),
+        }
+    }
+
+    pub fn sound_media_header_box(&self) -> Result<&InnerAtom, Error> {
+        match self.smhd.as_ref() {
+            Some(b) => Ok(b.downcast_ref::<InnerAtom>().unwrap()),
+            None => Err(Error::BoxNotFound("smhd".to_string())),
+        }
+    }
+
+    pub fn base_media_header_box(&self) -> Result<&InnerAtom, Error> {
+        match self.gmhd.as_ref() {
+            Some(b) => Ok(b.downcast_ref::<InnerAtom>().unwrap()),
+            None => Err(Error::BoxNotFound("gmhd".to_string())),
         }
     }
 
@@ -54,7 +71,7 @@ impl Mp4Box for MediaInfo {
 
         let mut index = start + 8; // skip the first 8 bytes that are headers
 
-        while index < len {
+        while index < start + len {
             // the first 8 bytes includes the atom size and its name
             // The size is the entire size of the box, including the size and type header, fields, and all contained boxes.
             let mut size = vec![0u8; 4];
@@ -67,27 +84,29 @@ impl Mp4Box for MediaInfo {
 
             match name {
                 "vmhd" => {
-                    let b = Box::new(InnerAtom::parse(
-                        reader,
-                        index,
-                        level + 1,
-                    )?) as Box<dyn Mp4Box>;
+                    let b =
+                        Box::new(InnerAtom::parse(reader, index, level + 1)?) as Box<dyn Mp4Box>;
                     media_info.vmhd = Some(b);
                 }
+
+                "smhd" => {
+                    let b =
+                        Box::new(InnerAtom::parse(reader, index, level + 1)?) as Box<dyn Mp4Box>;
+                    media_info.smhd = Some(b);
+                }
+                "gmhd" => {
+                    let b =
+                        Box::new(InnerAtom::parse(reader, index, level + 1)?) as Box<dyn Mp4Box>;
+                    media_info.gmhd = Some(b);
+                }
                 "dinf" => {
-                    let b = Box::new(InnerAtom::parse(
-                        reader,
-                        index,
-                        level + 1,
-                    )?) as Box<dyn Mp4Box>;
+                    let b =
+                        Box::new(InnerAtom::parse(reader, index, level + 1)?) as Box<dyn Mp4Box>;
                     media_info.dinf = Some(b);
                 }
                 "stbl" => {
-                    let b = Box::new(SampleTable::parse(
-                        reader,
-                        index,
-                        level + 1,
-                    )?) as Box<dyn Mp4Box>;
+                    let b =
+                        Box::new(SampleTable::parse(reader, index, level + 1)?) as Box<dyn Mp4Box>;
                     media_info.stbl = Some(b);
                 }
                 _ => {}
@@ -115,6 +134,12 @@ impl Mp4Box for MediaInfo {
         let mut fields = vec![];
         if let Some(vmhd) = self.vmhd.as_ref() {
             fields.push(vmhd.as_ref());
+        }
+        if let Some(smhd) = self.smhd.as_ref() {
+            fields.push(smhd.as_ref());
+        }
+        if let Some(gmhd) = self.gmhd.as_ref() {
+            fields.push(gmhd.as_ref());
         }
         if let Some(dinf) = self.dinf.as_ref() {
             fields.push(dinf.as_ref());

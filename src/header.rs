@@ -5,7 +5,7 @@
 
 use crate::error::Error;
 use byteorder::{BigEndian, ByteOrder};
-use std::io::{Seek, SeekFrom, Read};
+use std::io::{Read, Seek, SeekFrom};
 
 #[derive(Debug, Default)]
 pub struct Header {

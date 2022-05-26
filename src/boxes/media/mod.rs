@@ -1,13 +1,16 @@
 /*
  * © 2022 Arastoo Bozorgi
+ * © 2022 Samir Dharar
  * All rights reserved.
  */
 
 mod media_info;
 mod sample_table;
+mod stco;
 
 pub use media_info::MediaInfo;
 pub use sample_table::SampleTable;
+pub use stco::ChunkOffsetBox;
 
 use crate::boxes::{AtomName, InnerAtom, Mp4Box};
 use crate::error::Error;
@@ -59,7 +62,7 @@ impl Mp4Box for Media {
 
         let mut index = start + 8; // skip the first 8 bytes that are headers
 
-        while index < len {
+        while index < start + len {
             // the first 8 bytes includes the atom size and its name
             // The size is the entire size of the box, including the size and type header, fields, and all contained boxes.
             let mut size = vec![0u8; 4];
@@ -73,27 +76,18 @@ impl Mp4Box for Media {
 
             match name {
                 AtomName::MediaInfo => {
-                    let b = Box::new(MediaInfo::parse(
-                        reader,
-                        index,
-                        level + 1,
-                    )?) as Box<dyn Mp4Box>;
+                    let b =
+                        Box::new(MediaInfo::parse(reader, index, level + 1)?) as Box<dyn Mp4Box>;
                     media.minf = Some(b);
                 }
                 AtomName::MediaHeader => {
-                    let b = Box::new(InnerAtom::parse(
-                        reader,
-                        index,
-                        level + 1,
-                    )?) as Box<dyn Mp4Box>;
+                    let b =
+                        Box::new(InnerAtom::parse(reader, index, level + 1)?) as Box<dyn Mp4Box>;
                     media.mdhd = Some(b);
                 }
                 AtomName::MediaHandler => {
-                    let b = Box::new(InnerAtom::parse(
-                        reader,
-                        index,
-                        level + 1,
-                    )?) as Box<dyn Mp4Box>;
+                    let b =
+                        Box::new(InnerAtom::parse(reader, index, level + 1)?) as Box<dyn Mp4Box>;
                     media.hdlr = Some(b);
                 }
                 _ => {}

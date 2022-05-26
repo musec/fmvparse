@@ -1,8 +1,10 @@
 /*
  * © 2022 Arastoo Bozorgi
+ * © 2022 Samir Dharar
  * All rights reserved.
  */
 
+use crate::boxes::media::ChunkOffsetBox;
 use crate::boxes::{InnerAtom, Mp4Box};
 use crate::error::Error;
 use crate::Header;
@@ -110,7 +112,7 @@ impl Mp4Box for SampleTable {
 
         let mut index = start + 8; // skip the first 8 bytes that are headers
 
-        while index < len {
+        while index < start + len {
             // the first 8 bytes includes the atom size and its name
             // The size is the entire size of the box, including the size and type header, fields, and all contained boxes.
             let mut size = vec![0u8; 4];
@@ -123,85 +125,56 @@ impl Mp4Box for SampleTable {
 
             match name {
                 "stsd" => {
-                    let b = Box::new(InnerAtom::parse(
-                        reader,
-                        index,
-                        level + 1,
-                    )?) as Box<dyn Mp4Box>;
+                    let b =
+                        Box::new(InnerAtom::parse(reader, index, level + 1)?) as Box<dyn Mp4Box>;
                     sample_table.stsd = Some(b);
                 }
                 "stts" => {
-                    let b = Box::new(InnerAtom::parse(
-                        reader,
-                        index,
-                        level + 1,
-                    )?) as Box<dyn Mp4Box>;
+                    let b =
+                        Box::new(InnerAtom::parse(reader, index, level + 1)?) as Box<dyn Mp4Box>;
                     sample_table.stts = Some(b);
                 }
                 "ctts" => {
-                    let b = Box::new(InnerAtom::parse(
-                        reader,
-                        index,
-                        level + 1,
-                    )?) as Box<dyn Mp4Box>;
+                    let b =
+                        Box::new(InnerAtom::parse(reader, index, level + 1)?) as Box<dyn Mp4Box>;
                     sample_table.ctts = Some(b);
                 }
-                "stss" => {
-                    let b = Box::new(InnerAtom::parse(
-                        reader,
-                        index,
-                        level + 1,
-                    )?) as Box<dyn Mp4Box>;
-                    sample_table.stss = Some(b);
-                }
-                "sdtp" => {
-                    let b = Box::new(InnerAtom::parse(
-                        reader,
-                        index,
-                        level + 1,
-                    )?) as Box<dyn Mp4Box>;
-                    sample_table.sdtp = Some(b);
-                }
                 "stsc" => {
-                    let b = Box::new(InnerAtom::parse(
-                        reader,
-                        index,
-                        level + 1,
-                    )?) as Box<dyn Mp4Box>;
+                    let b =
+                        Box::new(InnerAtom::parse(reader, index, level + 1)?) as Box<dyn Mp4Box>;
                     sample_table.stsc = Some(b);
                 }
                 "stsz" => {
-                    let b = Box::new(InnerAtom::parse(
-                        reader,
-                        index,
-                        level + 1,
-                    )?) as Box<dyn Mp4Box>;
+                    let b =
+                        Box::new(InnerAtom::parse(reader, index, level + 1)?) as Box<dyn Mp4Box>;
                     sample_table.stsz = Some(b);
                 }
                 "stco" => {
-                    let b = Box::new(InnerAtom::parse(
-                        reader,
-                        index,
-                        level + 1,
-                    )?) as Box<dyn Mp4Box>;
+                    let b = Box::new(ChunkOffsetBox::parse(reader, index, level + 1)?)
+                        as Box<dyn Mp4Box>;
                     sample_table.stco = Some(b);
                 }
+                "stss" => {
+                    let b =
+                        Box::new(InnerAtom::parse(reader, index, level + 1)?) as Box<dyn Mp4Box>;
+                    sample_table.stss = Some(b);
+                }
+                "sdtp" => {
+                    let b =
+                        Box::new(InnerAtom::parse(reader, index, level + 1)?) as Box<dyn Mp4Box>;
+                    sample_table.sdtp = Some(b);
+                }
                 "sgpd" => {
-                    let b = Box::new(InnerAtom::parse(
-                        reader,
-                        index,
-                        level + 1,
-                    )?) as Box<dyn Mp4Box>;
+                    let b =
+                        Box::new(InnerAtom::parse(reader, index, level + 1)?) as Box<dyn Mp4Box>;
                     sample_table.sgpd = Some(b);
                 }
                 "sbgp" => {
-                    let b = Box::new(InnerAtom::parse(
-                        reader,
-                        index,
-                        level + 1,
-                    )?) as Box<dyn Mp4Box>;
+                    let b =
+                        Box::new(InnerAtom::parse(reader, index, level + 1)?) as Box<dyn Mp4Box>;
                     sample_table.sbgp = Some(b);
                 }
+
                 _ => {}
             }
 
@@ -235,12 +208,6 @@ impl Mp4Box for SampleTable {
         if let Some(ctts) = self.ctts.as_ref() {
             fields.push(ctts.as_ref());
         }
-        if let Some(stss) = self.stss.as_ref() {
-            fields.push(stss.as_ref());
-        }
-        if let Some(sdtp) = self.sdtp.as_ref() {
-            fields.push(sdtp.as_ref());
-        }
         if let Some(stsc) = self.stsc.as_ref() {
             fields.push(stsc.as_ref());
         }
@@ -249,6 +216,12 @@ impl Mp4Box for SampleTable {
         }
         if let Some(stco) = self.stco.as_ref() {
             fields.push(stco.as_ref());
+        }
+        if let Some(stss) = self.stss.as_ref() {
+            fields.push(stss.as_ref());
+        }
+        if let Some(sdtp) = self.sdtp.as_ref() {
+            fields.push(sdtp.as_ref());
         }
         if let Some(sgpd) = self.sgpd.as_ref() {
             fields.push(sgpd.as_ref());
